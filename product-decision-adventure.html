@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Effort Initiation: Choose Your Adventure</title>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<style>
+  :root {
+    --ink: #111111;
+    --gray-dark: #3a3a3a;
+    --gray-mid: #8a8a8a;
+    --gray-light: #d9d9d9;
+    --gray-pale: #f2f2f2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: #fafafa;
+    color: var(--ink);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .stage-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .trail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 28px;
+  }
+  .trail-badge {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: var(--gray-light);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+  }
+  .trail-badge.yes { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .trail-badge.no { background: #fff; color: var(--ink); border: 1px dashed var(--ink); }
+  .trail-badge.start { background: var(--gray-dark); color: #fff; border-color: var(--gray-dark); }
+
+  .w3-card {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 2px solid var(--ink);
+  }
+
+  .choice-card {
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+    height: 100%;
+  }
+  .choice-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--ink) !important;
+  }
+
+  .big-btn {
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 18px 0;
+    width: 100%;
+    border-radius: 0;
+    border: 2px solid var(--ink);
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+  .btn-yes {
+    background: var(--ink);
+    color: #fff;
+  }
+  .btn-yes:hover { background: var(--gray-dark); color: #fff; border-color: var(--gray-dark); }
+  .btn-no {
+    background: #fff;
+    color: var(--ink);
+  }
+  .btn-no:hover { background: var(--gray-light); color: var(--ink); }
+
+  .btn-outline {
+    border-radius: 0;
+    border: 2px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+  }
+  .btn-outline:hover { background: var(--ink); color: #fff; }
+
+  .fade-in {
+    animation: fadeIn 0.35s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .outcome-icon {
+    font-size: 56px;
+    line-height: 1;
+  }
+
+  .progress-outer {
+    height: 6px;
+    background: var(--gray-light);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .progress-inner {
+    height: 100%;
+    background: var(--ink);
+    transition: width 0.3s ease;
+  }
+
+  .outcome-acquire { background: var(--ink); color: #fff; border: 2px solid var(--ink); }
+  .outcome-feature { background: var(--gray-dark); color: #fff; border: 2px solid var(--gray-dark); }
+  .outcome-fold { background: #fff; color: var(--ink); border: 2px dashed var(--ink); }
+  .outcome-abandon { background: #fff; color: var(--ink); border: 2px solid var(--ink); }
+  .outcome-acquire p, .outcome-feature p { color: #eee; }
+
+  footer {
+    color: var(--gray-mid);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header class="w3-bar w3-black w3-padding-16">
+  <div class="stage-wrap">
+    <span class="w3-xlarge" style="letter-spacing:0.03em;">PRODUCT EFFORT INITIATION</span><br>
+    <span class="w3-small w3-opacity">Choose your own adventure through the decision tree</span>
+  </div>
+</header>
+
+<div class="stage-wrap w3-margin-top w3-padding">
+  <div class="progress-outer w3-margin-bottom">
+    <div class="progress-inner" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="trail" id="trail"></div>
+</div>
+
+<div class="stage-wrap w3-padding" id="app"></div>
+
+<div class="stage-wrap w3-padding w3-margin-bottom">
+  <footer class="w3-center">Based on the "Product effort initiation workflow" decision tree.</footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------
+   DATA MODEL
+   Each node is either:
+     type "start"     -> entry point, single "next"
+     type "question"  -> yes/no branches
+     type "end"        -> terminal outcome
+--------------------------------------------------------- */
+
+const nodes = {
+
+  // ---- Entry points ----
+  start_custom: {
+    type: "start",
+    title: "Custom project deliverable",
+    desc: "You built something bespoke for a client or internal effort, and now you're wondering if it's more than a one-off.",
+    icon: "🛠️",
+    next: "q_repeatable"
+  },
+  start_market: {
+    type: "start",
+    title: "Documented market gap",
+    desc: "You've identified and documented a real gap in the market.",
+    icon: "🔍",
+    next: "q_aligned"
+  },
+  start_tech: {
+    type: "start",
+    title: "Technology investigation",
+    desc: "R&D or a tech spike surfaced a capability worth pursuing.",
+    icon: "🧪",
+    next: "q_aligned"
+  },
+  start_acq: {
+    type: "start",
+    title: "Acquisition",
+    desc: "You've acquired a company, team, or product and need to figure out where it fits.",
+    icon: "🤝",
+    next: "q_release"
+  },
+
+  // ---- Intake gates ----
+  q_repeatable: {
+    type: "question",
+    question: "Is this a repeatable opportunity?",
+    help: "Could this be delivered again for other customers, or is it truly a one-time, one-client build?",
+    yes: "q_aligned",
+    no: "end_abandon_repeat"
+  },
+  q_aligned: {
+    type: "question",
+    question: "Is it aligned with business strategy?",
+    help: "Does pursuing this fit where the business says it wants to go?",
+    yes: "q_feasible_ux",
+    no: "end_abandon_align"
+  },
+  q_feasible_ux: {
+    type: "question",
+    question: "Is it feasible from a UX and implementation standpoint?",
+    help: "Can it realistically be designed and built with the team and tech available?",
+    yes: "q_duplicates",
+    no: "end_abandon_feasibility"
+  },
+  q_release: {
+    type: "question",
+    question: "Is release and repackaging feasible?",
+    help: "Can the acquired asset realistically be re-released or repackaged under your umbrella?",
+    yes: "q_duplicates",
+    no: "end_abandon_release"
+  },
+
+  // ---- Fit / overlap analysis ----
+  q_duplicates: {
+    type: "question",
+    question: "Does it duplicate an existing product?",
+    help: "Is there already a product in your portfolio that does substantially the same thing?",
+    yes: "q_significant",
+    no: "q_compatible"
+  },
+  q_significant: {
+    type: "question",
+    question: "Is there a significant change in UX or capability?",
+    help: "Even though it overlaps, does it meaningfully extend or transform what the existing product does?",
+    yes: "q_compatible",
+    no: "end_fold_1"
+  },
+  q_compatible: {
+    type: "question",
+    question: "Is it compatible with the business model?",
+    help: "Does it fit how the company actually makes money and goes to market?",
+    yes: "q_desirable",
+    no: "end_abandon_business_model"
+  },
+
+  // ---- Opportunity sizing ----
+  q_desirable: {
+    type: "question",
+    question: "Is it a desirable, addressable opportunity?",
+    help: "Do enough customers want this, and can you realistically reach them?",
+    yes: "q_channel",
+    no: "q_competitive"
+  },
+  q_channel: {
+    type: "question",
+    question: "Is there an established or feasible channel?",
+    help: "Can you actually get this in front of buyers through a channel you have or can build?",
+    yes: "q_roi",
+    no: "q_competitive"
+  },
+  q_competitive: {
+    type: "question",
+    question: "Does it close a competitive gap?",
+    help: "Even if the broader opportunity or channel is weak, does this close a gap competitors are exploiting?",
+    yes: "end_feature",
+    no: "end_abandon_competitive"
+  },
+
+  // ---- Investment case ----
+  q_roi: {
+    type: "question",
+    question: "Is the ROI acceptable?",
+    help: "Does the expected return justify the investment required?",
+    yes: "q_capacity",
+    no: "end_fold_2"
+  },
+  q_capacity: {
+    type: "question",
+    question: "Is there available or existing SWD (software development) capacity?",
+    help: "Do you have, or can you staff, the team needed to build and support this?",
+    yes: "end_acquire",
+    no: "end_fold_3"
+  },
+
+  // ---- Terminal outcomes ----
+  end_abandon_repeat: {
+    type: "end",
+    outcome: "abandon",
+    title: "Abandon",
+    icon: "🛑",
+    message: "A one-off deliverable isn't a repeatable opportunity, so it isn't a product. It may still be a great custom engagement — just not a product effort."
+  },
+  end_abandon_align: {
+    type: "end",
+    outcome: "abandon",
+    title: "Abandon",
+    icon: "🛑",
+    message: "Without strategic alignment, even a good idea will struggle for sponsorship and resources. Shelve it or reframe it before revisiting."
+  },
+  end_abandon_feasibility: {
+    type: "end",
+    outcome: "abandon",
+    title: "Abandon",
+    icon: "🛑",
+    message: "If it isn't feasible from a UX or implementation standpoint today, pursuing it further will burn time and credibility. Revisit if the constraints change."
+  },
+  end_abandon_release: {
+    type: "end",
+    outcome: "abandon",
+    title: "Abandon",
+    icon: "🛑",
+    message: "If the acquired asset can't realistically be released or repackaged, it likely stays as-is, gets sunset, or is mined for parts — not turned into a new effort."
+  },
+  end_abandon_business_model: {
+    type: "end",
+    outcome: "abandon",
+    title: "Abandon",
+    icon: "🛑",
+    message: "A great idea that doesn't fit the business model usually fails to sustain itself. Abandon it or find a model that actually fits before proceeding."
+  },
+  end_abandon_competitive: {
+    type: "end",
+    outcome: "abandon",
+    title: "Abandon",
+    icon: "🛑",
+    message: "The opportunity isn't desirable enough, the channel isn't there, and it doesn't close a competitive gap. This isn't worth pursuing right now."
+  },
+  end_fold_1: {
+    type: "end",
+    outcome: "fold",
+    title: "Consider folding into existing product effort or abandon",
+    icon: "🧩",
+    message: "It duplicates an existing product without a significant enough change in UX or capability to stand alone. Fold the idea into the existing product's roadmap, or abandon it."
+  },
+  end_fold_2: {
+    type: "end",
+    outcome: "fold",
+    title: "Consider folding into existing product effort or abandon",
+    icon: "🧩",
+    message: "The opportunity and channel look sound, but the ROI doesn't justify a standalone effort. Consider folding it into an existing product effort instead, or abandon it."
+  },
+  end_fold_3: {
+    type: "end",
+    outcome: "fold",
+    title: "Consider folding into existing product effort or abandon",
+    icon: "🧩",
+    message: "The business case works, but you don't have the software development capacity to staff it right now. Fold it into an existing effort, or abandon it until capacity opens up."
+  },
+  end_feature: {
+    type: "end",
+    outcome: "feature",
+    title: "New feature in existing product",
+    icon: "➕",
+    message: "This closes a real competitive gap. Rather than a new product, build it as a new feature within an existing product."
+  },
+  end_acquire: {
+    type: "end",
+    outcome: "acquire",
+    title: "Acquire or establish new product effort",
+    icon: "🚀",
+    message: "It's strategically aligned, feasible, differentiated, desirable, reachable, financially sound, and staffable. Time to acquire or establish a new product effort."
+  }
+};
+
+const outcomeColors = {
+  abandon: "outcome-abandon",
+  fold: "outcome-fold",
+  feature: "outcome-feature",
+  acquire: "outcome-acquire"
+};
+
+/* ---------------------------------------------------------
+   STATE + RENDER ENGINE
+--------------------------------------------------------- */
+let currentId = null;
+let history = []; // { label, kind: 'start'|'yes'|'no' }
+
+const app = document.getElementById("app");
+const trailEl = document.getElementById("trail");
+const progressBar = document.getElementById("progressBar");
+
+function renderTrail() {
+  trailEl.innerHTML = "";
+  history.forEach(h => {
+    const span = document.createElement("span");
+    span.className = "trail-badge " + h.kind;
+    span.textContent = h.label;
+    trailEl.appendChild(span);
+  });
+  // rough progress estimate: intake gate + fit + sizing + investment ~ up to 7 steps
+  const pct = Math.min(100, (history.length / 7) * 100);
+  progressBar.style.width = pct + "%";
+}
+
+function renderStartScreen() {
+  history = [];
+  progressBar.style.width = "0%";
+  renderTrail();
+
+  const starts = ["start_custom", "start_market", "start_tech", "start_acq"];
+  let html = `
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in">
+      <h2 class="w3-margin-top-0">Where did this idea come from?</h2>
+      <p class="w3-text-grey">Pick a starting point to walk through the decision tree and see where it leads.</p>
+    </div>
+    <div class="w3-row-padding fade-in">
+  `;
+  starts.forEach(id => {
+    const n = nodes[id];
+    html += `
+      <div class="w3-col m6 w3-margin-bottom">
+        <div class="choice-card w3-card w3-white w3-padding" onclick="choose('${id}', 'start')">
+          <div class="w3-xxlarge w3-margin-bottom">${n.icon}</div>
+          <div class="w3-large"><b>${n.title}</b></div>
+          <p class="w3-small w3-text-grey">${n.desc}</p>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  app.innerHTML = html;
+}
+
+function renderQuestion(id) {
+  const n = nodes[id];
+  app.innerHTML = `
+    <div class="w3-card w3-white w3-padding-large fade-in">
+      <h2 class="w3-margin-top-0">${n.question}</h2>
+      <p class="w3-text-grey">${n.help}</p>
+      <div class="w3-row-padding w3-margin-top">
+        <div class="w3-col s6">
+          <button class="big-btn btn-yes" onclick="answer('${id}', true)">Yes</button>
+        </div>
+        <div class="w3-col s6">
+          <button class="big-btn btn-no" onclick="answer('${id}', false)">No</button>
+        </div>
+      </div>
+    </div>
+    <div class="w3-center w3-margin-top">
+      <button class="w3-button btn-outline w3-small" onclick="restart()">Start over</button>
+    </div>
+  `;
+}
+
+function renderEnd(id) {
+  const n = nodes[id];
+  const color = outcomeColors[n.outcome];
+  app.innerHTML = `
+    <div class="w3-card w3-padding-large fade-in ${color}">
+      <div class="outcome-icon">${n.icon}</div>
+      <h2 class="w3-margin-top-0">${n.title}</h2>
+      <p>${n.message}</p>
+    </div>
+    <div class="w3-card w3-white w3-padding w3-margin-top fade-in">
+      <h4 class="w3-margin-top-0">Your path</h4>
+      <ol class="w3-ul">
+        ${history.map(h => `<li>${h.label}</li>`).join("")}
+      </ol>
+    </div>
+    <div class="w3-center w3-margin-top w3-margin-bottom">
+      <button class="w3-button btn-outline w3-padding" onclick="restart()">Try another path</button>
+    </div>
+  `;
+}
+
+function choose(startId, kind) {
+  const n = nodes[startId];
+  history.push({ label: n.title, kind: kind });
+  goTo(n.next);
+}
+
+function answer(questionId, isYes) {
+  const n = nodes[questionId];
+  history.push({
+    label: n.question + " → " + (isYes ? "Yes" : "No"),
+    kind: isYes ? "yes" : "no"
+  });
+  goTo(isYes ? n.yes : n.no);
+}
+
+function goTo(id) {
+  currentId = id;
+  renderTrail();
+  const n = nodes[id];
+  if (n.type === "question") {
+    renderQuestion(id);
+  } else if (n.type === "end") {
+    renderEnd(id);
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function restart() {
+  currentId = null;
+  renderStartScreen();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// init
+renderStartScreen();
+</script>
+
+</body>
+</html>
