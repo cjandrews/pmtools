@@ -3,8 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Product Effort Initiation: Choose Your Adventure</title>
+<title>Where do products come from? Choose your product's adventure</title>
+<meta name="description" content="Interactive decision tree for product managers: walk an idea through strategy, feasibility, and ROI gates to see if it becomes a new product, a feature, or gets folded.">
+<meta property="og:title" content="Where do products come from? Choose your product's adventure">
+<meta property="og:description" content="Walk a product idea through an interactive decision tree — strategy, feasibility, and ROI gates decide if it becomes a new product, a feature, or gets folded.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Where do products come from? Choose your product's adventure">
+<meta name="twitter:description" content="Walk a product idea through an interactive decision tree — strategy, feasibility, and ROI gates decide if it becomes a new product, a feature, or gets folded.">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<!-- Favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="shortcut icon" href="images/favicon.ico">
 <style>
   :root {
     --ink: #111111;
@@ -132,8 +146,8 @@
 
 <header class="w3-bar w3-black w3-padding-16">
   <div class="stage-wrap">
-    <span class="w3-xlarge" style="letter-spacing:0.03em;">PRODUCT EFFORT INITIATION</span><br>
-    <span class="w3-small w3-opacity">Choose your own adventure through the decision tree</span>
+    <span class="w3-xlarge" style="letter-spacing:0.03em;">WHERE DO PRODUCTS COME FROM?</span><br>
+    <span class="w3-small w3-opacity">Choose your product's adventure through the corporate decision tree.</span>
   </div>
 </header>
 
@@ -147,7 +161,8 @@
 <div class="stage-wrap w3-padding" id="app"></div>
 
 <div class="stage-wrap w3-padding w3-margin-bottom">
-  <footer class="w3-center">Based on the "Product effort initiation workflow" decision tree.</footer>
+  <footer class="w3-center">Based on the "Product effort initiation workflow" decision tree by Chris Andrews.
+    <br />&copy; <a href="https://www.evolutioninformatique.fr">Évolution Informatique SAS</a> 2026.</footer>
 </div>
 
 <script>
@@ -165,7 +180,7 @@ const nodes = {
   start_custom: {
     type: "start",
     title: "Custom project deliverable",
-    desc: "You built something bespoke for a client or internal effort, and now you're wondering if it's more than a one-off.",
+    desc: "You built something bespoke for a client or internal effort and now you're wondering if it's more than a one-off.",
     icon: "🛠️",
     next: "q_repeatable"
   },
@@ -194,22 +209,22 @@ const nodes = {
   // ---- Intake gates ----
   q_repeatable: {
     type: "question",
-    question: "Is this a repeatable opportunity?",
-    help: "Could this be delivered again for other customers, or is it truly a one-time, one-client build?",
+    question: "Is the effort a repeatable opportunity?",
+    help: "Could this be delivered again for other customers or is it a one-time, one-client build?",
     yes: "q_aligned",
     no: "end_abandon_repeat"
   },
   q_aligned: {
     type: "question",
-    question: "Is it aligned with business strategy?",
-    help: "Does pursuing this fit where the business says it wants to go?",
+    question: "Is the product idea aligned with business strategy?",
+    help: "Does pursuing this accomplish the business mission in a manner that is aligned with the business strategy?",
     yes: "q_feasible_ux",
     no: "end_abandon_align"
   },
   q_feasible_ux: {
     type: "question",
-    question: "Is it feasible from a UX and implementation standpoint?",
-    help: "Can it realistically be designed and built with the team and tech available?",
+    question: "Is productization feasible?",
+    help: "Do you have validation that the capability, UX, performance, and scalability are feasible along with the know-how to achieve them?",
     yes: "q_duplicates",
     no: "end_abandon_feasibility"
   },
@@ -224,7 +239,7 @@ const nodes = {
   // ---- Fit / overlap analysis ----
   q_duplicates: {
     type: "question",
-    question: "Does it duplicate an existing product?",
+    question: "Does the product idea duplicate an existing product?",
     help: "Is there already a product in your portfolio that does substantially the same thing?",
     yes: "q_significant",
     no: "q_compatible"
@@ -238,7 +253,7 @@ const nodes = {
   },
   q_compatible: {
     type: "question",
-    question: "Is it compatible with the business model?",
+    question: "Is the product idea compatible with the business model?",
     help: "Does it fit how the company actually makes money and goes to market?",
     yes: "q_desirable",
     no: "end_abandon_business_model"
@@ -247,21 +262,21 @@ const nodes = {
   // ---- Opportunity sizing ----
   q_desirable: {
     type: "question",
-    question: "Is it a desirable, addressable opportunity?",
-    help: "Do enough customers want this, and can you realistically reach them?",
+    question: "Is there a desirable, addressable opportunity?",
+    help: "Do enough customers want the product and can you reach them?",
     yes: "q_channel",
     no: "q_competitive"
   },
   q_channel: {
     type: "question",
     question: "Is there an established or feasible channel?",
-    help: "Can you actually get this in front of buyers through a channel you have or can build?",
+    help: "Can you actually get the product in front of buyers through a channel you have or can build?",
     yes: "q_roi",
     no: "q_competitive"
   },
   q_competitive: {
     type: "question",
-    question: "Does it close a competitive gap?",
+    question: "Does the product idea close a competitive gap?",
     help: "Even if the broader opportunity or channel is weak, does this close a gap competitors are exploiting?",
     yes: "end_feature",
     no: "end_abandon_competitive"
@@ -271,13 +286,13 @@ const nodes = {
   q_roi: {
     type: "question",
     question: "Is the ROI acceptable?",
-    help: "Does the expected return justify the investment required?",
+    help: "Does the expected return justify the investment required? Even if it's at 2x the expected time to reach breakeven?",
     yes: "q_capacity",
     no: "end_fold_2"
   },
   q_capacity: {
     type: "question",
-    question: "Is there available or existing SWD (software development) capacity?",
+    question: "Is there available or existing development capacity?",
     help: "Do you have, or can you staff, the team needed to build and support this?",
     yes: "end_acquire",
     no: "end_fold_3"
@@ -310,7 +325,7 @@ const nodes = {
     outcome: "abandon",
     title: "Abandon",
     icon: "🛑",
-    message: "If the acquired asset can't realistically be released or repackaged, it likely stays as-is, gets sunset, or is mined for parts — not turned into a new effort."
+    message: "If the acquired asset can't easily be released or repackaged, it likely stays as-is, gets sunset, or is mined for parts, but not turned into a new effort."
   },
   end_abandon_business_model: {
     type: "end",
@@ -345,7 +360,7 @@ const nodes = {
     outcome: "fold",
     title: "Consider folding into existing product effort or abandon",
     icon: "🧩",
-    message: "The business case works, but you don't have the software development capacity to staff it right now. Fold it into an existing effort, or abandon it until capacity opens up."
+    message: "The business case works, but you don't have the capacity to staff it right now. Fold it into an existing effort, or abandon it until capacity opens up."
   },
   end_feature: {
     type: "end",
@@ -400,8 +415,8 @@ function renderStartScreen() {
 
   const starts = ["start_custom", "start_market", "start_tech", "start_acq"];
   let html = `
-    <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in">
-      <h2 class="w3-margin-top-0">Where did this idea come from?</h2>
+    <div class="w3-white w3-padding-large w3-margin-bottom fade-in">
+      <h2 class="w3-margin-top-0">Where did your product idea come from?</h2>
       <p class="w3-text-grey">Pick a starting point to walk through the decision tree and see where it leads.</p>
     </div>
     <div class="w3-row-padding fade-in">

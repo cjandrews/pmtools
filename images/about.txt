@@ -1,0 +1,9 @@
+This favicon was generated using the following font:
+
+- Font Title: Unica One
+- Background: Rounded
+- Font Source: https://favicon.io/favicon-generator/
+- Background color: #3a0ca3
+- Font size: 120
+
+
