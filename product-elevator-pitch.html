@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Elevator Pitch Builder</title>
+<meta name="description" content="Interactive elevator pitch builder for product managers: answer guided prompts and get two ready-to-use pitch formats for your product.">
+<meta property="og:title" content="Product Elevator Pitch Builder">
+<meta property="og:description" content="Walk through guided prompts and generate two elevator pitch versions — classic positioning and a product-first format.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Product Elevator Pitch Builder">
+<meta name="twitter:description" content="Walk through guided prompts and generate two elevator pitch versions — classic positioning and a product-first format.">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<!-- Favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="shortcut icon" href="images/favicon.ico">
+<style>
+  :root {
+    --ink: #111111;
+    --gray-dark: #3a3a3a;
+    --gray-mid: #8a8a8a;
+    --gray-light: #d9d9d9;
+    --gray-pale: #f2f2f2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: #fafafa;
+    color: var(--ink);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .stage-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .trail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 28px;
+  }
+  .trail-badge {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: var(--gray-light);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+  }
+  .trail-badge.done { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .trail-badge.start { background: var(--gray-dark); color: #fff; border-color: var(--gray-dark); }
+
+  .w3-card {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 2px solid var(--ink);
+  }
+
+  .choice-card {
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+    height: 100%;
+  }
+  .choice-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--ink) !important;
+  }
+
+  .big-btn {
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 18px 0;
+    width: 100%;
+    border-radius: 0;
+    border: 2px solid var(--ink);
+    transition: background 0.12s ease, color 0.12s ease;
+    background: var(--ink);
+    color: #fff;
+    cursor: pointer;
+  }
+  .big-btn:hover { background: var(--gray-dark); color: #fff; border-color: var(--gray-dark); }
+  .big-btn:disabled {
+    background: var(--gray-light);
+    color: var(--gray-mid);
+    border-color: var(--gray-light);
+    cursor: not-allowed;
+  }
+
+  .btn-outline {
+    border-radius: 0;
+    border: 2px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .btn-outline:hover { background: var(--ink); color: #fff; }
+
+  .fade-in {
+    animation: fadeIn 0.35s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .progress-outer {
+    height: 6px;
+    background: var(--gray-light);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .progress-inner {
+    height: 100%;
+    background: var(--ink);
+    transition: width 0.3s ease;
+  }
+
+  .field-input {
+    width: 100%;
+    font-size: 18px;
+    font-family: inherit;
+    padding: 14px 16px;
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+  }
+  .field-input:focus {
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .field-input::placeholder {
+    color: var(--gray-mid);
+  }
+  textarea.field-input {
+    min-height: 110px;
+    resize: vertical;
+    line-height: 1.45;
+  }
+
+  .pitch-block {
+    font-size: 17px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+  .pitch-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-mid);
+    margin-bottom: 8px;
+  }
+  .pitch-line-label {
+    color: var(--gray-mid);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .pitch-value {
+    font-weight: 600;
+  }
+
+  .copy-toast {
+    display: none;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-mid);
+    margin-left: 10px;
+  }
+  .copy-toast.show { display: inline; }
+
+  footer {
+    color: var(--gray-mid);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header class="w3-bar w3-black w3-padding-16">
+  <div class="stage-wrap">
+    <span class="w3-xlarge" style="letter-spacing:0.03em;">PRODUCT ELEVATOR PITCH</span><br>
+    <span class="w3-small w3-opacity">Answer a few prompts. Walk out with two ready-to-use pitch versions.</span>
+  </div>
+</header>
+
+<div class="stage-wrap w3-margin-top w3-padding">
+  <div class="progress-outer w3-margin-bottom">
+    <div class="progress-inner" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="trail" id="trail"></div>
+</div>
+
+<div class="stage-wrap w3-padding" id="app"></div>
+
+<div class="stage-wrap w3-padding w3-margin-bottom">
+  <footer class="w3-center">Based on classic product positioning templates used by product managers.
+    <br />&copy; <a href="https://www.evolutioninformatique.fr">Évolution Informatique SAS</a> 2026.</footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------
+   STEP MODEL
+   Each step collects one pitch slot. Final screen renders
+   Option 1 (classic) and Option 2 (product-first).
+--------------------------------------------------------- */
+
+const steps = [
+  {
+    id: "productName",
+    trail: "Name",
+    question: "What is the product name?",
+    help: "The short name you want people to remember and repeat.",
+    placeholder: "e.g. Atlas Insights",
+    multiline: false
+  },
+  {
+    id: "productCategory",
+    trail: "Category",
+    question: "What product category does it belong to?",
+    help: "The mental box buyers put it in — keep it familiar, not invented jargon.",
+    placeholder: "e.g. project portfolio dashboard for construction teams",
+    multiline: false
+  },
+  {
+    id: "targetCustomer",
+    trail: "Customer",
+    question: "Who is the target customer?",
+    help: "Be specific: role, company type, or situation — not 'everyone'.",
+    placeholder: "e.g. product managers at mid-market B2B software companies",
+    multiline: false
+  },
+  {
+    id: "need",
+    trail: "Need",
+    question: "What need or opportunity do they have?",
+    help: "The pain, gap, or moment that makes them look for a solution.",
+    placeholder: "e.g. struggle to turn scattered customer feedback into clear roadmap bets",
+    multiline: true
+  },
+  {
+    id: "benefit",
+    trail: "Benefit",
+    question: "What is the key benefit — the reason to buy?",
+    help: "The outcome they get, not the feature list.",
+    placeholder: "e.g. turns weeks of prioritization debate into a shared, evidence-backed plan in hours",
+    multiline: true
+  },
+  {
+    id: "alternative",
+    trail: "Alternative",
+    question: "What is the primary competitive alternative?",
+    help: "What they use or do today if they don't buy you — a rival product, spreadsheets, status quo.",
+    placeholder: "e.g. spreadsheet roadmaps and ad-hoc Slack polls",
+    multiline: false
+  },
+  {
+    id: "differentiation",
+    trail: "Difference",
+    question: "What is the primary differentiation?",
+    help: "The one sharp reason you win against that alternative.",
+    placeholder: "e.g. links every roadmap item to scored evidence from customers, sales, and support",
+    multiline: true
+  }
+];
+
+const answers = {};
+let stepIndex = -1; // -1 = start screen
+
+const app = document.getElementById("app");
+const trailEl = document.getElementById("trail");
+const progressBar = document.getElementById("progressBar");
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderTrail() {
+  trailEl.innerHTML = "";
+  if (stepIndex < 0) {
+    progressBar.style.width = "0%";
+    return;
+  }
+  steps.forEach((s, i) => {
+    if (i > stepIndex) return;
+    const span = document.createElement("span");
+    span.className = "trail-badge " + (i < stepIndex || stepIndex >= steps.length ? "done" : "start");
+    span.textContent = s.trail;
+    trailEl.appendChild(span);
+  });
+  if (stepIndex >= steps.length) {
+    const span = document.createElement("span");
+    span.className = "trail-badge done";
+    span.textContent = "Pitch";
+    trailEl.appendChild(span);
+  }
+  const pct = Math.min(100, ((stepIndex + 1) / (steps.length + 1)) * 100);
+  progressBar.style.width = pct + "%";
+}
+
+function renderStartScreen() {
+  stepIndex = -1;
+  Object.keys(answers).forEach(k => delete answers[k]);
+  renderTrail();
+  app.innerHTML = `
+    <div class="w3-white w3-padding-large w3-margin-bottom fade-in">
+      <h2 class="w3-margin-top-0">Build your product elevator pitch</h2>
+      <p class="w3-text-grey">Seven short prompts. Two pitch versions at the end — classic positioning and product-first.</p>
+    </div>
+    <div class="w3-row-padding fade-in">
+      <div class="w3-col m6 w3-margin-bottom">
+        <div class="choice-card w3-card w3-white w3-padding" onclick="startPitch()">
+          <div class="w3-xxlarge w3-margin-bottom">🎯</div>
+          <div class="w3-large"><b>Start the pitch builder</b></div>
+          <p class="w3-small w3-text-grey">Name, customer, need, benefit, alternative, and differentiation — one step at a time.</p>
+        </div>
+      </div>
+      <div class="w3-col m6 w3-margin-bottom">
+        <div class="w3-card w3-white w3-padding" style="height:100%; opacity:0.85;">
+          <div class="w3-xxlarge w3-margin-bottom">📝</div>
+          <div class="w3-large"><b>What you'll get</b></div>
+          <p class="w3-small w3-text-grey">Option 1: classic "For / Who / The / That / Unlike / Our product" template.<br><br>Option 2: product-first "is a / For / Who / That / unique value" template.</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function startPitch() {
+  stepIndex = 0;
+  renderStep();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderStep() {
+  if (stepIndex >= steps.length) {
+    renderResults();
+    return;
+  }
+  const s = steps[stepIndex];
+  const existing = answers[s.id] || "";
+  const inputTag = s.multiline
+    ? `<textarea class="field-input" id="fieldInput" placeholder="${escapeHtml(s.placeholder)}" rows="4">${escapeHtml(existing)}</textarea>`
+    : `<input class="field-input" id="fieldInput" type="text" placeholder="${escapeHtml(s.placeholder)}" value="${escapeHtml(existing)}">`;
+
+  renderTrail();
+  app.innerHTML = `
+    <div class="w3-card w3-white w3-padding-large fade-in">
+      <p class="w3-small w3-text-grey" style="text-transform:uppercase;letter-spacing:0.05em;margin-top:0;">
+        Step ${stepIndex + 1} of ${steps.length}
+      </p>
+      <h2 class="w3-margin-top-0">${escapeHtml(s.question)}</h2>
+      <p class="w3-text-grey">${escapeHtml(s.help)}</p>
+      <div class="w3-margin-top">${inputTag}</div>
+      <div class="w3-margin-top">
+        <button class="big-btn" id="continueBtn" onclick="continueStep()">Continue</button>
+      </div>
+    </div>
+    <div class="w3-center w3-margin-top">
+      ${stepIndex > 0 ? `<button class="w3-button btn-outline w3-small w3-margin-right" onclick="goBack()">Back</button>` : ""}
+      <button class="w3-button btn-outline w3-small" onclick="restart()">Start over</button>
+    </div>
+  `;
+
+  const input = document.getElementById("fieldInput");
+  const btn = document.getElementById("continueBtn");
+  function syncBtn() {
+    btn.disabled = !input.value.trim();
+  }
+  syncBtn();
+  input.addEventListener("input", syncBtn);
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !s.multiline && input.value.trim()) {
+      e.preventDefault();
+      continueStep();
+    }
+  });
+  input.focus();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function continueStep() {
+  const input = document.getElementById("fieldInput");
+  const value = (input.value || "").trim();
+  if (!value) return;
+  answers[steps[stepIndex].id] = value;
+  stepIndex += 1;
+  renderStep();
+}
+
+function goBack() {
+  if (stepIndex <= 0) return;
+  const input = document.getElementById("fieldInput");
+  if (input && steps[stepIndex]) {
+    answers[steps[stepIndex].id] = input.value.trim();
+  }
+  stepIndex -= 1;
+  renderStep();
+}
+
+function buildOption1() {
+  const a = answers;
+  return {
+    plain:
+`For ${a.targetCustomer}
+Who ${a.need}
+The ${a.productName} is a ${a.productCategory}
+That ${a.benefit}
+Unlike ${a.alternative}
+Our product ${a.differentiation}`,
+    html: `
+      <div class="pitch-block">
+        <div><span class="pitch-line-label">For</span> <span class="pitch-value">${escapeHtml(a.targetCustomer)}</span></div>
+        <div><span class="pitch-line-label">Who</span> <span class="pitch-value">${escapeHtml(a.need)}</span></div>
+        <div><span class="pitch-line-label">The</span> <span class="pitch-value">${escapeHtml(a.productName)}</span> <span class="pitch-line-label">is a</span> <span class="pitch-value">${escapeHtml(a.productCategory)}</span></div>
+        <div><span class="pitch-line-label">That</span> <span class="pitch-value">${escapeHtml(a.benefit)}</span></div>
+        <div><span class="pitch-line-label">Unlike</span> <span class="pitch-value">${escapeHtml(a.alternative)}</span></div>
+        <div><span class="pitch-line-label">Our product</span> <span class="pitch-value">${escapeHtml(a.differentiation)}</span></div>
+      </div>`
+  };
+}
+
+function buildOption2() {
+  const a = answers;
+  return {
+    plain:
+`${a.productName} is a ${a.productCategory}
+For ${a.targetCustomer}
+Who ${a.need}
+That ${a.benefit}
+Our product's unique value is ${a.differentiation}`,
+    html: `
+      <div class="pitch-block">
+        <div><span class="pitch-value">${escapeHtml(a.productName)}</span> <span class="pitch-line-label">is a</span> <span class="pitch-value">${escapeHtml(a.productCategory)}</span></div>
+        <div><span class="pitch-line-label">For</span> <span class="pitch-value">${escapeHtml(a.targetCustomer)}</span></div>
+        <div><span class="pitch-line-label">Who</span> <span class="pitch-value">${escapeHtml(a.need)}</span></div>
+        <div><span class="pitch-line-label">That</span> <span class="pitch-value">${escapeHtml(a.benefit)}</span></div>
+        <div><span class="pitch-line-label">Our product's unique value is</span> <span class="pitch-value">${escapeHtml(a.differentiation)}</span></div>
+      </div>`
+  };
+}
+
+function renderResults() {
+  renderTrail();
+  progressBar.style.width = "100%";
+  const opt1 = buildOption1();
+  const opt2 = buildOption2();
+
+  app.innerHTML = `
+    <div class="w3-white w3-padding-large w3-margin-bottom fade-in">
+      <h2 class="w3-margin-top-0">Your elevator pitches</h2>
+      <p class="w3-text-grey">Two versions from the same answers. Copy the one that fits the room.</p>
+    </div>
+
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in">
+      <div class="pitch-label">Option 1 — Classic positioning</div>
+      ${opt1.html}
+      <div class="w3-margin-top">
+        <button class="w3-button btn-outline w3-small" onclick="copyPitch('opt1')">Copy Option 1</button>
+        <span class="copy-toast" id="toast-opt1">Copied</span>
+      </div>
+    </div>
+
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in">
+      <div class="pitch-label">Option 2 — Product-first</div>
+      ${opt2.html}
+      <div class="w3-margin-top">
+        <button class="w3-button btn-outline w3-small" onclick="copyPitch('opt2')">Copy Option 2</button>
+        <span class="copy-toast" id="toast-opt2">Copied</span>
+      </div>
+    </div>
+
+    <div class="w3-center w3-margin-top w3-margin-bottom">
+      <button class="w3-button btn-outline w3-padding" onclick="editFromStart()">Edit answers</button>
+      <button class="w3-button btn-outline w3-padding w3-margin-left" onclick="restart()">Start over</button>
+    </div>
+  `;
+
+  window._pitchPlain = { opt1: opt1.plain, opt2: opt2.plain };
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function copyPitch(key) {
+  const text = window._pitchPlain && window._pitchPlain[key];
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById("toast-" + key);
+    if (!toast) return;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 1600);
+  }).catch(() => {
+    // Fallback for older browsers / denied clipboard
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    const toast = document.getElementById("toast-" + key);
+    if (toast) {
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+  });
+}
+
+function editFromStart() {
+  stepIndex = 0;
+  renderStep();
+}
+
+function restart() {
+  renderStartScreen();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+renderStartScreen();
+</script>
+
+</body>
+</html>
