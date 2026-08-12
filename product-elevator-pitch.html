@@ -419,7 +419,7 @@ function buildOption1() {
     plain:
 `For ${a.targetCustomer}
 Who ${a.need}
-The ${a.productName} is a ${a.productCategory}
+${a.productName} is a ${a.productCategory}
 That ${a.benefit}
 Unlike ${a.alternative}
 Our product ${a.differentiation}`,
@@ -427,7 +427,7 @@ Our product ${a.differentiation}`,
       <div class="pitch-block">
         <div><span class="pitch-line-label">For</span> <span class="pitch-value">${escapeHtml(a.targetCustomer)}</span></div>
         <div><span class="pitch-line-label">Who</span> <span class="pitch-value">${escapeHtml(a.need)}</span></div>
-        <div><span class="pitch-line-label">The</span> <span class="pitch-value">${escapeHtml(a.productName)}</span> <span class="pitch-line-label">is a</span> <span class="pitch-value">${escapeHtml(a.productCategory)}</span></div>
+        <div><span class="pitch-line-label"></span> <span class="pitch-value">${escapeHtml(a.productName)}</span> <span class="pitch-line-label">is a</span> <span class="pitch-value">${escapeHtml(a.productCategory)}</span></div>
         <div><span class="pitch-line-label">That</span> <span class="pitch-value">${escapeHtml(a.benefit)}</span></div>
         <div><span class="pitch-line-label">Unlike</span> <span class="pitch-value">${escapeHtml(a.alternative)}</span></div>
         <div><span class="pitch-line-label">Our product</span> <span class="pitch-value">${escapeHtml(a.differentiation)}</span></div>
