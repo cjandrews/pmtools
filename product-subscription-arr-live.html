@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Year-5 Subscription ARR — Live Tune</title>
+<meta name="description" content="Estimate year-5 ARR for a seat-based subscription, then interactivelytune renewal, capture, saturation, and growth with live sliders on the report.">
+<meta property="og:title" content="Year-5 Subscription ARR — Live Tune">
+<meta property="og:description" content="Seven inputs, then live percentage sliders that update year-5 ARR and the year-by-year table.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Year-5 Subscription ARR — Live Tune">
+<meta name="twitter:description" content="Seven inputs, then live percentage sliders that update year-5 ARR and the year-by-year table.">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<!-- Favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="shortcut icon" href="images/favicon.ico">
+<style>
+  :root {
+    --ink: #111111;
+    --gray-dark: #3a3a3a;
+    --gray-mid: #8a8a8a;
+    --gray-light: #d9d9d9;
+    --gray-pale: #f2f2f2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: #fafafa;
+    color: var(--ink);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .stage-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .trail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 28px;
+  }
+  .trail-badge {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: var(--gray-light);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+  }
+  .trail-badge.done { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .trail-badge.start { background: var(--gray-dark); color: #fff; border-color: var(--gray-dark); }
+
+  .w3-card {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 2px solid var(--ink);
+  }
+
+  .choice-card {
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+    height: 100%;
+  }
+  .choice-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--ink) !important;
+  }
+
+  .big-btn {
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 18px 0;
+    width: 100%;
+    border-radius: 0;
+    border: 2px solid var(--ink);
+    transition: background 0.12s ease, color 0.12s ease;
+    background: var(--ink);
+    color: #fff;
+    cursor: pointer;
+  }
+  .big-btn:hover { background: var(--gray-dark); color: #fff; border-color: var(--gray-dark); }
+  .big-btn:disabled {
+    background: var(--gray-light);
+    color: var(--gray-mid);
+    border-color: var(--gray-light);
+    cursor: not-allowed;
+  }
+
+  .btn-outline {
+    border-radius: 0;
+    border: 2px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .btn-outline:hover { background: var(--ink); color: #fff; }
+
+  .fade-in {
+    animation: fadeIn 0.35s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .progress-outer {
+    height: 6px;
+    background: var(--gray-light);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .progress-inner {
+    height: 100%;
+    background: var(--ink);
+    transition: width 0.3s ease;
+  }
+
+  .field-input {
+    width: 100%;
+    font-size: 18px;
+    font-family: inherit;
+    padding: 14px 16px;
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+  }
+  .field-input:focus {
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .field-input::placeholder {
+    color: var(--gray-mid);
+  }
+  .field-with-unit {
+    display: flex;
+    width: 100%;
+  }
+  .field-with-unit .field-input {
+    flex: 1;
+    min-width: 0;
+    border-right: 0;
+  }
+  .field-with-unit .field-input:focus {
+    box-shadow: none;
+  }
+  .field-with-unit:focus-within {
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .field-unit {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border: 2px solid var(--ink);
+    background: var(--gray-pale);
+    color: var(--gray-dark);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .field-error {
+    color: var(--ink);
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 1.2em;
+  }
+
+  .arr-hero {
+    font-size: clamp(28px, 7vw, 48px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin: 8px 0 4px;
+  }
+  .arr-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-mid);
+  }
+  .year-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .year-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .year-table th,
+  .year-table td {
+    border: 1px solid var(--ink);
+    padding: 8px 10px;
+    text-align: right;
+  }
+  .year-table th:first-child,
+  .year-table td:first-child {
+    text-align: left;
+    font-weight: 600;
+  }
+  .year-table thead th {
+    background: var(--gray-pale);
+    font-weight: 600;
+  }
+  .year-table .col-y5 {
+    background: var(--gray-pale);
+  }
+  .year-table .row-arr td {
+    font-weight: 600;
+  }
+  .clipped-mark {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--gray-mid);
+  }
+
+  .fixed-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .fixed-chip {
+    font-size: 13px;
+    padding: 6px 12px;
+    border: 1px solid var(--ink);
+    background: var(--gray-pale);
+  }
+
+  .slider-row {
+    margin-bottom: 20px;
+  }
+  .slider-row:last-child {
+    margin-bottom: 0;
+  }
+  .slider-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .slider-title {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .slider-help {
+    font-size: 12px;
+    color: var(--gray-mid);
+    margin: 0 0 8px;
+  }
+  .slider-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .slider-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--gray-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 4px;
+  }
+  input[type="range"].pct-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+  }
+  input[type="range"].pct-slider:focus {
+    outline: none;
+  }
+  input[type="range"].pct-slider:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+  input[type="range"].pct-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    background: var(--gray-light);
+    border: 1px solid var(--ink);
+  }
+  input[type="range"].pct-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    margin-top: -9px;
+    background: var(--ink);
+    border: 2px solid var(--ink);
+    cursor: pointer;
+  }
+  input[type="range"].pct-slider::-moz-range-track {
+    height: 6px;
+    background: var(--gray-light);
+    border: 1px solid var(--ink);
+  }
+  input[type="range"].pct-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    cursor: pointer;
+  }
+
+  .copy-toast {
+    display: none;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-mid);
+    margin-left: 10px;
+  }
+  .copy-toast.show { display: inline; }
+
+  .assumptions {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--gray-dark);
+  }
+  .assumptions li { margin-bottom: 6px; }
+
+  footer {
+    color: var(--gray-mid);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header class="w3-bar w3-black w3-padding-16">
+  <div class="stage-wrap">
+    <span class="w3-xlarge" style="letter-spacing:0.03em;">YEAR-5 SUBSCRIPTION ARR — INTERACTIVE</span><br>
+    <span class="w3-small w3-opacity">Estimate year-5 ARR then interactively tune percentages on the report and see updates.</span>
+  </div>
+</header>
+
+<div class="stage-wrap w3-margin-top w3-padding">
+  <div class="progress-outer w3-margin-bottom">
+    <div class="progress-inner" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="trail" id="trail"></div>
+</div>
+
+<div class="stage-wrap w3-padding" id="app"></div>
+
+<div class="stage-wrap w3-padding w3-margin-bottom">
+  <footer class="w3-center">A rough sizing tool for new seat-based subscription products based on Chris Andrews' experience with new product introduction. Not a financial forecast.
+    <br />&copy; <a href="https://www.evolutioninformatique.fr">Évolution Informatique SAS</a> 2026.</footer>
+</div>
+
+<script>
+/* ---------------------------------------------------------
+   Same model as product-subscription-arr.html, plus live
+   percentage sliders on the report that refresh ARR + table.
+--------------------------------------------------------- */
+
+  const steps = [
+    {
+      id: "price",
+      trail: "Price",
+      question: "What is the annual price per seat?",
+      help: "One seat equals one subscription. The fee is charged once per year and stays constant for all five years. Use the same currency throughout.",
+      placeholder: "e.g. 1200",
+      unit: "/ seat / year",
+      min: 0,
+      exclusiveMin: 0
+    },
+    {
+      id: "renewal",
+      trail: "Renew",
+      question: "How likely is a seat to renew each year?",
+      help: "Percent of last year’s paying seats that still pay this year. The rest churn and can be sold again. Renewals is seat retention — not net revenue retention. Expansion (upsell or extra seats per customer) is not included.",
+      placeholder: "e.g. 80",
+      unit: "%",
+      min: 0,
+      max: 100
+    },
+    {
+      id: "marketSeats",
+      trail: "Market",
+      question: "What is the theoretical number of seats in the market today?",
+      help: "Current total addressable seats — today’s market, not year 5. Year-1 new sales are a percent of this number.",
+      placeholder: "e.g. 10000",
+      unit: "seats",
+      min: 0,
+      exclusiveMin: 0
+    },
+    {
+      id: "year1Capture",
+      trail: "Capture",
+      question: "What percent of the market can you sell in year 1?",
+      help: "New seats in year 1 only, as a percent of today’s market. Not renewals.  New sales, minus churn, represent increasing market share.",
+      placeholder: "e.g. 5",
+      unit: "%",
+      min: 0,
+      max: 100
+    },
+    {
+      id: "saturation",
+      trail: "Cap",
+      question: "What is effective market saturation?",
+      help: "Maximum paying seats as a percent of the addressable market. A hard cap on concurrent subscribers. Churned seats return to the available pool.",
+      placeholder: "e.g. 30",
+      unit: "%",
+      min: 0,
+      max: 100
+    },
+    {
+      id: "salesGrowth",
+      trail: "Sales Δ",
+      question: "How much do new sales grow each year?",
+      help: "Each year’s target new-seat count = previous year’s target × (1 + this rate). 10% means year 2’s new-seat target is 1.1 × year 1. This grows new sales only, not renewals. −10% means new sales shrink.",
+      placeholder: "e.g. 10",
+      unit: "%",
+      min: -100,
+      max: 500
+    },
+    {
+      id: "marketGrowth",
+      trail: "Market Δ",
+      question: "How much is the market growing year over year (CAGR)?",
+      help: "Market size in year N = today’s market × (1 + this rate)^(N − 1). Year 1 uses today’s size. Saturation applies to each year’s market.",
+      placeholder: "e.g. 3",
+      unit: "%",
+      min: -100,
+      max: 500
+    }
+  ];
+
+const answers = {};
+let stepIndex = -1;
+let lastForecast = null;
+
+const app = document.getElementById("app");
+const trailEl = document.getElementById("trail");
+const progressBar = document.getElementById("progressBar");
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function formatSeats(n) {
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(n));
+}
+
+function formatMoney(n, price) {
+  const digits = Number.isInteger(price) ? 0 : 2;
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  }).format(n);
+}
+
+function formatPct(rate) {
+  return new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 1
+  }).format(rate * 100) + "%";
+}
+
+function formatPctInput(n) {
+  const rounded = Math.round(n * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+}
+
+function clampPct(id, value) {
+  const cfg = pctSliders.find(s => s.id === id);
+  if (!cfg) return value;
+  let n = Number(value);
+  if (!Number.isFinite(n)) n = cfg.min;
+  return Math.min(cfg.max, Math.max(cfg.min, n));
+}
+
+function parseStepValue(step, raw) {
+  const n = Number(String(raw).replace(/,/g, "").trim());
+  if (!Number.isFinite(n)) return { ok: false, msg: "Enter a number." };
+  if (step.exclusiveMin != null && n <= step.exclusiveMin) {
+    return { ok: false, msg: "Must be greater than " + step.exclusiveMin + "." };
+  }
+  if (step.min != null && n < step.min) {
+    return { ok: false, msg: "Must be at least " + step.min + "." };
+  }
+  if (step.max != null && n > step.max) {
+    return { ok: false, msg: "Must be at most " + step.max + "." };
+  }
+  return { ok: true, value: n };
+}
+
+function renderTrail() {
+  trailEl.innerHTML = "";
+  if (stepIndex < 0) {
+    progressBar.style.width = "0%";
+    return;
+  }
+  steps.forEach((s, i) => {
+    if (i > stepIndex) return;
+    const span = document.createElement("span");
+    span.className = "trail-badge " + (i < stepIndex || stepIndex >= steps.length ? "done" : "start");
+    span.textContent = s.trail;
+    trailEl.appendChild(span);
+  });
+  if (stepIndex >= steps.length) {
+    const span = document.createElement("span");
+    span.className = "trail-badge done";
+    span.textContent = "ARR";
+    trailEl.appendChild(span);
+  }
+  const pct = Math.min(100, ((stepIndex + 1) / (steps.length + 1)) * 100);
+  progressBar.style.width = pct + "%";
+}
+
+function renderStartScreen() {
+  stepIndex = -1;
+  lastForecast = null;
+  Object.keys(answers).forEach(k => delete answers[k]);
+  renderTrail();
+  app.innerHTML = `
+    <div class="w3-white w3-padding-large w3-margin-bottom fade-in">
+      <h2 class="w3-margin-top-0">Estimate year-5 ARR (interactive version)</h2>
+      <p class="w3-text-grey">Same seven inputs as the base estimator. On the report, drag percentage sliders to see ARR and the year-by-year table update immediately. Price and market size stay fixed.</p>
+    </div>
+    <div class="w3-row-padding fade-in">
+      <div class="w3-col m6 w3-margin-bottom">
+        <div class="choice-card w3-card w3-white w3-padding" onclick="startForecast()">
+          <div class="w3-xxlarge w3-margin-bottom">🎚️</div>
+          <div class="w3-large"><b>Start the live estimator</b></div>
+          <p class="w3-small w3-text-grey">Answer the prompts, then explore renewal, capture, saturation, and growth on the report.</p>
+        </div>
+      </div>
+      <div class="w3-col m6 w3-margin-bottom">
+        <div class="w3-card w3-white w3-padding" style="height:100%; opacity:0.85;">
+          <div class="w3-xxlarge w3-margin-bottom">📐</div>
+          <div class="w3-large"><b>What this assumes</b></div>
+          <p class="w3-small w3-text-grey">1 seat = 1 subscription.<br/>New sales in year 1.<br/>Existing seats renew or churn.<br/>Saturation caps paying seats.<br/>No expansion revenue.</p>
+  `;
+}
+
+function startForecast() {
+  stepIndex = 0;
+  renderStep();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderStep() {
+  if (stepIndex >= steps.length) {
+    renderResults(true);
+    return;
+  }
+  const s = steps[stepIndex];
+  const existing = answers[s.id] != null ? String(answers[s.id]) : "";
+
+  renderTrail();
+  app.innerHTML = `
+    <div class="w3-card w3-white w3-padding-large fade-in">
+      <p class="w3-small w3-text-grey" style="text-transform:uppercase;letter-spacing:0.05em;margin-top:0;">
+        Step ${stepIndex + 1} of ${steps.length}
+      </p>
+      <h2 class="w3-margin-top-0"><label for="fieldInput">${escapeHtml(s.question)}</label></h2>
+      <p class="w3-text-grey">${escapeHtml(s.help)}</p>
+      <div class="w3-margin-top">
+        <div class="field-with-unit">
+          <input class="field-input" id="fieldInput" type="number" inputmode="decimal" step="any"
+            placeholder="${escapeHtml(s.placeholder)}" value="${escapeHtml(existing)}"
+            ${s.min != null ? `min="${s.min}"` : ""} ${s.max != null ? `max="${s.max}"` : ""}>
+          <span class="field-unit">${escapeHtml(s.unit)}</span>
+        </div>
+        <div class="field-error" id="fieldError"></div>
+      </div>
+      <div class="w3-margin-top">
+        <button class="big-btn" id="continueBtn" onclick="continueStep()">Continue</button>
+      </div>
+    </div>
+    <div class="w3-center w3-margin-top">
+      ${stepIndex > 0 ? `<button class="w3-button btn-outline w3-small w3-margin-right" onclick="goBack()">Back</button>` : ""}
+      <button class="w3-button btn-outline w3-small" onclick="restart()">Start over</button>
+    </div>
+  `;
+
+  const input = document.getElementById("fieldInput");
+  const btn = document.getElementById("continueBtn");
+  const err = document.getElementById("fieldError");
+
+  function syncBtn() {
+    const parsed = parseStepValue(s, input.value);
+    btn.disabled = !parsed.ok;
+    err.textContent = input.value.trim() && !parsed.ok ? parsed.msg : "";
+  }
+  syncBtn();
+  input.addEventListener("input", syncBtn);
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !btn.disabled) {
+      e.preventDefault();
+      continueStep();
+    }
+  });
+  input.focus();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function continueStep() {
+  const s = steps[stepIndex];
+  const input = document.getElementById("fieldInput");
+  const parsed = parseStepValue(s, input.value);
+  if (!parsed.ok) return;
+  answers[s.id] = parsed.value;
+  stepIndex += 1;
+  renderStep();
+}
+
+function goBack() {
+  if (stepIndex <= 0) return;
+  const input = document.getElementById("fieldInput");
+  const s = steps[stepIndex];
+  if (input && s) {
+    const parsed = parseStepValue(s, input.value);
+    if (parsed.ok) answers[s.id] = parsed.value;
+  }
+  stepIndex -= 1;
+  renderStep();
+}
+
+function calculateForecast(a) {
+  const price = a.price;
+  const renewal = a.renewal / 100;
+  const market0 = a.marketSeats;
+  const salesGrowth = a.salesGrowth / 100;
+  const marketGrowth = a.marketGrowth / 100;
+  const sat = a.saturation / 100;
+
+  let desiredNew = (a.year1Capture / 100) * market0;
+  let paying = 0;
+  const years = [];
+  const clippedYears = [];
+
+  for (let t = 1; t <= 5; t++) {
+    const market = Math.max(0, market0 * Math.pow(1 + marketGrowth, t - 1));
+    const cap = Math.max(0, sat * market);
+    const renewed = paying * renewal;
+    const room = Math.max(0, cap - renewed);
+    const target = Math.max(0, desiredNew);
+    const newSales = Math.min(target, room);
+    if (target > 0 && newSales + 1e-9 < target) clippedYears.push(t);
+    paying = renewed + newSales;
+    years.push({
+      year: t,
+      market,
+      cap,
+      renewed,
+      desiredNew: target,
+      newSales,
+      paying,
+      arr: paying * price,
+      penetration: market > 0 ? paying / market : 0
+    });
+    desiredNew = target * (1 + salesGrowth);
+  }
+
+  return { years, clippedYears, price };
+}
+
+function yearCells(years, pick, fmt, highlightLast) {
+  return years.map((y, i) => {
+    const cls = highlightLast && i === years.length - 1 ? ' class="col-y5"' : "";
+    return `<td${cls}>${fmt(y, pick(y))}</td>`;
+  }).join("");
+}
+
+function buildHeroHtml(forecast) {
+  const y5 = forecast.years[4];
+  const price = forecast.price;
+  const money = n => formatMoney(n, price);
+  const seats = n => formatSeats(n);
+  return `
+    <div class="arr-label">Estimated year-5 ARR</div>
+    <div class="arr-hero">${escapeHtml(money(y5.arr))}</div>
+    <p class="w3-text-grey w3-margin-bottom-0">${escapeHtml(seats(y5.paying))} paying seats × ${escapeHtml(money(price))} per seat. Same currency as the price you entered.</p>
+  `;
+}
+
+function buildTableHtml(forecast) {
+  const price = forecast.price;
+  const money = n => formatMoney(n, price);
+  const seats = n => formatSeats(n);
+
+  const newSeatCells = forecast.years.map((y, i) => {
+    const cls = i === 4 ? ' class="col-y5"' : "";
+    const clipped = y.desiredNew > 0 && y.newSales + 1e-9 < y.desiredNew;
+    const extra = clipped ? ` <span class="clipped-mark" title="Target ${seats(y.desiredNew)}">cap</span>` : "";
+    return `<td${cls}>${seats(y.newSales)}${extra}</td>`;
+  }).join("");
+
+  const clippedNote = forecast.clippedYears.length
+    ? `<p class="clipped-mark" id="clippedNote">Saturation limited new sales in year${forecast.clippedYears.length > 1 ? "s" : ""} ${forecast.clippedYears.join(", ")}.</p>`
+    : `<p class="clipped-mark" id="clippedNote" style="display:none;"></p>`;
+
+  return `
+    <div class="arr-label">Year by year</div>
+    <div class="year-scroll w3-margin-top">
+      <table class="year-table">
+        <thead>
+          <tr>
+            <th></th>
+            ${forecast.years.map((y, i) => `<th${i === 4 ? ' class="col-y5"' : ""}>Year ${y.year}</th>`).join("")}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Market (seats)</td>
+            ${yearCells(forecast.years, y => y.market, (y, n) => seats(n), true)}
+          </tr>
+          <tr>
+            <td>Saturation cap</td>
+            ${yearCells(forecast.years, y => y.cap, (y, n) => seats(n), true)}
+          </tr>
+          <tr>
+            <td>Renewed seats</td>
+            ${yearCells(forecast.years, y => y.renewed, (y, n) => seats(n), true)}
+          </tr>
+          <tr>
+            <td>New seats</td>
+            ${newSeatCells}
+          </tr>
+          <tr>
+            <td>Paying seats</td>
+            ${yearCells(forecast.years, y => y.paying, (y, n) => seats(n), true)}
+          </tr>
+          <tr>
+            <td>Penetration</td>
+            ${yearCells(forecast.years, y => y.penetration, (y, n) => formatPct(n), true)}
+          </tr>
+          <tr class="row-arr">
+            <td>ARR</td>
+            ${yearCells(forecast.years, y => y.arr, (y, n) => money(n), true)}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    ${clippedNote}
+  `;
+}
+
+function buildSlidersHtml() {
+  return pctSliders.map(s => {
+    const val = clampPct(s.id, answers[s.id]);
+    answers[s.id] = val;
+    return `
+      <div class="slider-row">
+        <div class="slider-head">
+          <label class="slider-title" for="slider-${escapeHtml(s.id)}">${escapeHtml(s.title)}</label>
+          <span class="slider-value" id="val-${escapeHtml(s.id)}">${escapeHtml(formatPctInput(val))}%</span>
+        </div>
+        <p class="slider-help">${escapeHtml(s.help)}</p>
+        <input class="pct-slider" type="range" id="slider-${escapeHtml(s.id)}"
+          min="${s.min}" max="${s.max}" step="${s.step}" value="${val}"
+          aria-valuemin="${s.min}" aria-valuemax="${s.max}" aria-valuenow="${val}"
+          aria-label="${escapeHtml(s.title)}">
+        <div class="slider-meta">
+          <span>${s.min}%</span>
+          <span>${s.max}%</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function refreshReport() {
+  pctSliders.forEach(s => {
+    answers[s.id] = clampPct(s.id, answers[s.id]);
+  });
+  const forecast = calculateForecast(answers);
+  lastForecast = forecast;
+  const hero = document.getElementById("reportHero");
+  const table = document.getElementById("reportTable");
+  if (hero) hero.innerHTML = buildHeroHtml(forecast);
+  if (table) table.innerHTML = buildTableHtml(forecast);
+}
+
+function onSliderInput(id, raw) {
+  const val = clampPct(id, raw);
+  answers[id] = val;
+  const label = document.getElementById("val-" + id);
+  if (label) label.textContent = formatPctInput(val) + "%";
+  const slider = document.getElementById("slider-" + id);
+  if (slider) {
+    slider.value = String(val);
+    slider.setAttribute("aria-valuenow", String(val));
+  }
+  refreshReport();
+}
+
+function bindSliders() {
+  pctSliders.forEach(s => {
+    const el = document.getElementById("slider-" + s.id);
+    if (!el) return;
+    el.addEventListener("input", () => onSliderInput(s.id, el.value));
+  });
+}
+
+function renderResults(scrollTop) {
+  renderTrail();
+  progressBar.style.width = "100%";
+
+  pctSliders.forEach(s => {
+    answers[s.id] = clampPct(s.id, answers[s.id]);
+  });
+
+  const forecast = calculateForecast(answers);
+  lastForecast = forecast;
+  const price = forecast.price;
+
+  app.innerHTML = `
+    <div class="w3-white w3-padding-large w3-margin-bottom fade-in" id="reportHero">
+      ${buildHeroHtml(forecast)}
+    </div>
+
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in">
+      <div class="arr-label">Tune percentages</div>
+      <p class="w3-text-grey" style="margin-top:8px;">Drag a slider — ARR and the year-by-year table update live. Price and market size stay as entered.</p>
+      <div class="fixed-chips">
+        <span class="fixed-chip">Price: ${escapeHtml(formatMoney(price, price))} / seat / year</span>
+        <span class="fixed-chip">Market: ${escapeHtml(formatSeats(answers.marketSeats))} seats</span>
+      </div>
+      <div class="w3-margin-top" id="sliderPanel">
+        ${buildSlidersHtml()}
+      </div>
+    </div>
+
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in" id="reportTable">
+      ${buildTableHtml(forecast)}
+    </div>
+
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in">
+      <div class="arr-label">How this was calculated</div>
+      <ul class="assumptions w3-margin-bottom-0">
+        <li>1 seat = 1 subscription. Price is per seat per year and does not change.</li>
+        <li>Year 1 new seats = capture % × today’s market. That <em>target</em> new-seat count then grows at your sales-growth rate, even if saturation cut actual sales in an earlier year.</li>
+        <li>Paying seats each year = last year’s paying seats × renewal + that year’s new seats.</li>
+        <li>Paying seats cannot exceed saturation × that year’s market. Churned seats can be sold again.</li>
+        <li>New sales are booked at the start of the year for a full annual fee. Year-5 ARR is paying seats at the end of year 5 × price — not cumulative five-year revenue.</li>
+        <li><b>Expansion is excluded.</b> No upsell, no extra seats inside an account, no price increases. Renewal is seat retention only, so net revenue retention cannot exceed the renewal rate.</li>
+      </ul>
+    </div>
+
+    <div class="w3-margin-bottom fade-in">
+      <button class="w3-button btn-outline w3-small" onclick="copyForecast()">Copy summary</button>
+      <span class="copy-toast" id="toast-copy">Copied</span>
+    </div>
+
+    <div class="w3-center w3-margin-top w3-margin-bottom">
+      <button class="w3-button btn-outline w3-padding" onclick="editFromStart()">Edit answers</button>
+      <button class="w3-button btn-outline w3-padding w3-margin-left" onclick="restart()">Start over</button>
+    </div>
+  `;
+
+  bindSliders();
+  if (scrollTop) window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function buildSummaryText(forecast) {
+  const a = answers;
+  const y5 = forecast.years[4];
+  const money = n => formatMoney(n, a.price);
+  const lines = [
+    "Year-5 subscription ARR estimate (live tune)",
+    "",
+    "Year-5 ARR: " + money(y5.arr),
+    "Paying seats in year 5: " + formatSeats(y5.paying),
+    "",
+    "Inputs",
+    "Annual price per seat: " + money(a.price),
+    "Renewal: " + a.renewal + "%",
+    "Market seats today: " + formatSeats(a.marketSeats),
+    "Year-1 capture: " + a.year1Capture + "%",
+    "Saturation: " + a.saturation + "%",
+    "New-sales growth: " + a.salesGrowth + "%",
+    "Market growth: " + a.marketGrowth + "%",
+    "",
+    "Year  Market  Cap  Renewed  New  Paying  ARR"
+  ];
+  forecast.years.forEach(y => {
+    lines.push(
+      "Y" + y.year + "  " +
+      formatSeats(y.market) + "  " +
+      formatSeats(y.cap) + "  " +
+      formatSeats(y.renewed) + "  " +
+      formatSeats(y.newSales) + "  " +
+      formatSeats(y.paying) + "  " +
+      money(y.arr)
+    );
+  });
+  lines.push("");
+  lines.push("Assumes 1 seat = 1 subscription, constant price, no expansion revenue.");
+  if (forecast.clippedYears.length) {
+    lines.push("Saturation limited new sales in year(s) " + forecast.clippedYears.join(", ") + ".");
+  }
+  return lines.join("\n");
+}
+
+function copyForecast() {
+  const text = lastForecast ? buildSummaryText(lastForecast) : "";
+  if (!text) return;
+  const toast = document.getElementById("toast-copy");
+  function showToast() {
+    if (!toast) return;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 1600);
+  }
+  navigator.clipboard.writeText(text).then(showToast).catch(() => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast();
+  });
+}
+
+function editFromStart() {
+  stepIndex = 0;
+  renderStep();
+}
+
+function restart() {
+  renderStartScreen();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+renderStartScreen();
+</script>
+
+</body>
+</html>

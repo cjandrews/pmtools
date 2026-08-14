@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PM Tools</title>
+<meta name="description" content="A growing set of single-page tools for product managers: elevator pitches, decision trees, and subscription ARR estimators.">
+<meta property="og:title" content="PM Tools">
+<meta property="og:description" content="Interactive product-management tools — pitch builders, decision adventures, and ARR estimators.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PM Tools">
+<meta name="twitter:description" content="Interactive product-management tools — pitch builders, decision adventures, and ARR estimators.">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<!-- Favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="shortcut icon" href="images/favicon.ico">
+<style>
+  :root {
+    --ink: #111111;
+    --gray-dark: #3a3a3a;
+    --gray-mid: #8a8a8a;
+    --gray-light: #d9d9d9;
+    --gray-pale: #f2f2f2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: #fafafa;
+    color: var(--ink);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .stage-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .w3-card {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: 2px solid var(--ink);
+  }
+
+  .tool-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+    height: 100%;
+    min-height: 220px;
+  }
+  .tool-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--ink) !important;
+    color: inherit;
+  }
+  .tool-card:focus {
+    outline: none;
+  }
+  .tool-card:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 4px;
+  }
+  .tool-icon {
+    font-size: 42px;
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+  .tool-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin-bottom: 8px;
+  }
+  .tool-desc {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--gray-dark);
+    margin: 0;
+  }
+  .tool-cta {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 2px;
+  }
+
+  .intro {
+    margin-bottom: 8px;
+  }
+  .intro h2 {
+    margin-top: 0;
+  }
+
+  footer {
+    color: var(--gray-mid);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header class="w3-bar w3-black w3-padding-16">
+  <div class="stage-wrap">
+    <span class="w3-xlarge" style="letter-spacing:0.03em;">PM TOOLS</span><br>
+    <span class="w3-small w3-opacity">Simple tools to help product managers get started.</span>
+  </div>
+</header>
+
+<div class="stage-wrap w3-padding w3-margin-top">
+  <div class="intro w3-white w3-padding-large w3-margin-bottom">
+    <h2>Choose a tool</h2>
+    <p class="w3-text-grey w3-margin-bottom-0">Pitch it, pressure-test the idea, or size year-5 subscription ARR. Each tool builds a useful output from simple prompts. Pick one and go.</p>
+  </div>
+
+  <div class="w3-row-padding">
+    <div class="w3-col m6 w3-margin-bottom">
+      <a class="tool-card w3-card w3-white w3-padding-large" href="product-elevator-pitch.html">
+        <div class="tool-icon">🎯</div>
+        <div class="tool-title">Product Elevator Pitch</div>
+        <p class="tool-desc">A few short prompts. Ready-to-use pitch versions for classic positioning or a product-first pitch.</p>
+        <span class="tool-cta">Open tool</span>
+      </a>
+    </div>
+    <div class="w3-col m6 w3-margin-bottom">
+      <a class="tool-card w3-card w3-white w3-padding-large" href="product-decision-adventure.html">
+        <div class="tool-icon">🗺️</div>
+        <div class="tool-title">Where Do Products Come From?</div>
+        <p class="tool-desc">Walk an idea through strategy, feasibility, and ROI gates. See if it becomes a product, a feature, or gets shelved.</p>
+        <span class="tool-cta">Open tool</span>
+      </a>
+    </div>
+    <div class="w3-col m6 w3-margin-bottom">
+      <a class="tool-card w3-card w3-white w3-padding-large" href="product-subscription-arr.html">
+        <div class="tool-icon">📈</div>
+        <div class="tool-title">Year-5 Subscription ARR</div>
+        <p class="tool-desc">Define a seat-based subscription and see estimated annual recurring revenue (ARR) at the end of year 5.</p>
+        <span class="tool-cta">Open tool</span>
+      </a>
+    </div>
+    <div class="w3-col m6 w3-margin-bottom">
+      <a class="tool-card w3-card w3-white w3-padding-large" href="product-subscription-arr-live.html">
+        <div class="tool-icon">🎚️</div>
+        <div class="tool-title">Year-5 ARR — Interactive version</div>
+        <p class="tool-desc">Define your subscription offering, then tune renewal, capture, saturation, and growth with live sliders on the report.</p>
+        <span class="tool-cta">Open tool</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="stage-wrap w3-padding w3-margin-bottom">
+  <footer class="w3-center">Free product-management tools to help you get started.
+    <br />&copy; <a href="https://www.evolutioninformatique.fr">Évolution Informatique SAS</a> 2026.
+    <br /><a href="https://evolutioninformatique.com/#contact">Get in touch</a> if you have feedback, questions, or ideas that you'd like to discuss.</footer>
+</div>
+
+</body>
+</html>
