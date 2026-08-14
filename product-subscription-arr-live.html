@@ -12,6 +12,7 @@
 <meta name="twitter:title" content="Year-5 Subscription ARR — Live Tune">
 <meta name="twitter:description" content="Seven inputs, then live percentage sliders that update year-5 ARR and the year-by-year table.">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="styles/pm-tools.css">
 
 <!-- Favicon -->
 <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
@@ -20,126 +21,6 @@
 <link rel="manifest" href="site.webmanifest">
 <link rel="shortcut icon" href="images/favicon.ico">
 <style>
-  :root {
-    --ink: #111111;
-    --gray-dark: #3a3a3a;
-    --gray-mid: #8a8a8a;
-    --gray-light: #d9d9d9;
-    --gray-pale: #f2f2f2;
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-    background: #fafafa;
-    color: var(--ink);
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-  }
-  .stage-wrap {
-    max-width: 760px;
-    margin: 0 auto;
-  }
-  .trail {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    min-height: 28px;
-  }
-  .trail-badge {
-    font-size: 12px;
-    letter-spacing: 0.02em;
-    padding: 3px 12px;
-    border-radius: 999px;
-    background: var(--gray-light);
-    color: var(--ink);
-    border: 1px solid var(--ink);
-  }
-  .trail-badge.done { background: var(--ink); color: #fff; border-color: var(--ink); }
-  .trail-badge.start { background: var(--gray-dark); color: #fff; border-color: var(--gray-dark); }
-
-  .w3-card {
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    border: 2px solid var(--ink);
-  }
-
-  .choice-card {
-    cursor: pointer;
-    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
-    height: 100%;
-  }
-  .choice-card:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 var(--ink) !important;
-  }
-
-  .big-btn {
-    font-size: 18px;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 18px 0;
-    width: 100%;
-    border-radius: 0;
-    border: 2px solid var(--ink);
-    transition: background 0.12s ease, color 0.12s ease;
-    background: var(--ink);
-    color: #fff;
-    cursor: pointer;
-  }
-  .big-btn:hover { background: var(--gray-dark); color: #fff; border-color: var(--gray-dark); }
-  .big-btn:disabled {
-    background: var(--gray-light);
-    color: var(--gray-mid);
-    border-color: var(--gray-light);
-    cursor: not-allowed;
-  }
-
-  .btn-outline {
-    border-radius: 0;
-    border: 2px solid var(--ink);
-    background: #fff;
-    color: var(--ink);
-    cursor: pointer;
-  }
-  .btn-outline:hover { background: var(--ink); color: #fff; }
-
-  .fade-in {
-    animation: fadeIn 0.35s ease;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .progress-outer {
-    height: 6px;
-    background: var(--gray-light);
-    border-radius: 0;
-    overflow: hidden;
-  }
-  .progress-inner {
-    height: 100%;
-    background: var(--ink);
-    transition: width 0.3s ease;
-  }
-
-  .field-input {
-    width: 100%;
-    font-size: 18px;
-    font-family: inherit;
-    padding: 14px 16px;
-    border: 2px solid var(--ink);
-    border-radius: 0;
-    background: #fff;
-    color: var(--ink);
-    outline: none;
-  }
-  .field-input:focus {
-    box-shadow: 4px 4px 0 var(--ink);
-  }
-  .field-input::placeholder {
-    color: var(--gray-mid);
-  }
   .field-with-unit {
     display: flex;
     width: 100%;
@@ -318,29 +199,12 @@
     cursor: pointer;
   }
 
-  .copy-toast {
-    display: none;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--gray-mid);
-    margin-left: 10px;
-  }
-  .copy-toast.show { display: inline; }
-
   .assumptions {
     font-size: 14px;
     line-height: 1.55;
     color: var(--gray-dark);
   }
   .assumptions li { margin-bottom: 6px; }
-
-  footer {
-    color: var(--gray-mid);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
 </style>
 </head>
 <body>
