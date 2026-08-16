@@ -42,6 +42,35 @@
   .pitch-value {
     font-weight: 600;
   }
+  .pitch-intros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 4px;
+  }
+  .pitch-intro {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    background: var(--gray-pale);
+    padding: 6px 12px;
+  }
+  .pitch-intro-note {
+    font-size: 12px;
+    color: var(--gray-mid);
+    margin: 0 0 8px;
+  }
+  .how-to-use {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #1a1a1a;
+    background: #5bfaff;
+    border: 2px solid var(--ink);
+    padding: 12px 14px;
+    margin: 14px 0 0;
+  }
 </style>
 </head>
 <body>
@@ -63,7 +92,8 @@
 <div class="stage-wrap w3-padding" id="app"></div>
 
 <div class="stage-wrap w3-padding w3-margin-bottom">
-  <footer class="w3-center">Based on classic product positioning templates used by product managers.
+  <footer class="w3-center">Based on classic product positioning templates used by product managers. 
+    <br />Adapted here by <a href="https://www.linkedin.com/in/chrisandrews/">Chris Andrews</a>.
     <br />&copy; <a href="https://www.evolutioninformatique.fr">Évolution Informatique SAS</a> 2026.</footer>
 </div>
 
@@ -81,6 +111,7 @@ const steps = [
     question: "What is the product name?",
     help: "The short name you want people to remember and repeat.",
     placeholder: "e.g. Atlas Insights",
+    pitchIntros: ["[Product name] is a …"],
     multiline: false
   },
   {
@@ -89,6 +120,7 @@ const steps = [
     question: "What product category does it belong to?",
     help: "The mental box buyers put it in — keep it familiar, not invented jargon.",
     placeholder: "e.g. project portfolio dashboard for construction teams",
+    pitchIntros: ["… is a"],
     multiline: false
   },
   {
@@ -97,6 +129,7 @@ const steps = [
     question: "Who is the target customer?",
     help: "Be specific: role, company type, or situation — not 'everyone'.",
     placeholder: "e.g. product managers at mid-market B2B software companies",
+    pitchIntros: ["For"],
     multiline: false
   },
   {
@@ -105,6 +138,7 @@ const steps = [
     question: "What need or opportunity do they have?",
     help: "The pain, gap, or moment that makes them look for a solution.",
     placeholder: "e.g. struggle to turn scattered customer feedback into clear roadmap bets",
+    pitchIntros: ["Who"],
     multiline: true
   },
   {
@@ -113,6 +147,7 @@ const steps = [
     question: "What is the key benefit — the reason to buy?",
     help: "The outcome they get, not the feature list.",
     placeholder: "e.g. turns weeks of prioritization debate into a shared, evidence-backed plan in hours",
+    pitchIntros: ["That"],
     multiline: true
   },
   {
@@ -121,6 +156,8 @@ const steps = [
     question: "What is the primary competitive alternative?",
     help: "What they use or do today if they don't buy you — a rival product, spreadsheets, status quo.",
     placeholder: "e.g. spreadsheet roadmaps and ad-hoc Slack polls",
+    pitchIntros: ["Unlike"],
+    pitchIntroNote: "Used in Option 1 (classic positioning).",
     multiline: false
   },
   {
@@ -129,6 +166,8 @@ const steps = [
     question: "What is the primary differentiation?",
     help: "The one sharp reason you win against that alternative.",
     placeholder: "e.g. links every roadmap item to scored evidence from customers, sales, and support",
+    pitchIntros: ["Our product", "Our product's unique value is"],
+    pitchIntroNote: "Option 1 uses “Our product”; Option 2 uses “Our product's unique value is”.",
     multiline: true
   }
 ];
@@ -215,6 +254,12 @@ function renderStep() {
   const inputTag = s.multiline
     ? `<textarea class="field-input" id="fieldInput" placeholder="${escapeHtml(s.placeholder)}" rows="4">${escapeHtml(existing)}</textarea>`
     : `<input class="field-input" id="fieldInput" type="text" placeholder="${escapeHtml(s.placeholder)}" value="${escapeHtml(existing)}">`;
+  const introsHtml = (s.pitchIntros || []).map(
+    label => `<span class="pitch-intro">${escapeHtml(label)}</span>`
+  ).join("");
+  const introNoteHtml = s.pitchIntroNote
+    ? `<p class="pitch-intro-note">${escapeHtml(s.pitchIntroNote)}</p>`
+    : "";
 
   renderTrail();
   app.innerHTML = `
@@ -224,6 +269,8 @@ function renderStep() {
       </p>
       <h2 class="w3-margin-top-0">${escapeHtml(s.question)}</h2>
       <p class="w3-text-grey">${escapeHtml(s.help)}</p>
+      <div class="pitch-intros">${introsHtml}</div>
+      ${introNoteHtml}
       <div class="w3-margin-top">${inputTag}</div>
       <div class="w3-margin-top">
         <button class="big-btn" id="continueBtn" onclick="continueStep()">Continue</button>
@@ -323,6 +370,7 @@ function renderResults() {
     <div class="w3-white w3-padding-large w3-margin-bottom fade-in">
       <h2 class="w3-margin-top-0">Your elevator pitches</h2>
       <p class="w3-text-grey">Two versions from the same answers. Copy the one that fits your need or culture.</p>
+      <p class="how-to-use"><b>How to use:</b> The purpose of this tool is to give you a head start. Copy out one or both of these versions and wordsmith them into a polished result.</p>
     </div>
 
     <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in">
