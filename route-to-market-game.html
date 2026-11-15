@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Route to Market Game</title>
+<style>
+/* Matches the PM Tools shell: monochrome ink on near-white, square 2px borders, black header bar.
+   Layout idea: the network diagram is the game board; a ledger panel sits beside it. */
+:root{
+  --ink:#111111; --gray-dark:#3a3a3a; --gray-mid:#8a8a8a; --gray-light:#d9d9d9; --gray-pale:#f2f2f2;
+  --bg:#fafafa; --surface:#ffffff;
+  --body:'Helvetica Neue',Arial,sans-serif; --display:"Segoe UI",Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);-webkit-text-size-adjust:100%}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:14px}
+.inner{max-width:1280px;margin:0 auto;padding:0 16px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
+h2{font-size:28px}
+h3{font-size:18px}
+p{margin:0}
+a{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.top{background:#000;color:#fff;padding:16px 0}
+.top h1{font-size:24px;letter-spacing:.03em;text-transform:uppercase;line-height:1.5}
+.top p{font-size:12px;opacity:.6}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{background:var(--surface);border:2px solid var(--ink);padding:10px 14px;min-width:0}
+.tile .k{font-size:12px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em}
+.tile .v{font-size:28px;font-weight:600;letter-spacing:-.03em;line-height:1.15;font-variant-numeric:tabular-nums}
+.tile .s{font-size:12.5px;color:var(--gray-dark)}
+.tile.bad{border-style:dashed}
+.qdots{display:flex;gap:4px;margin-top:6px}
+.qdots i{flex:1;height:6px;background:var(--gray-light)}
+.qdots i.done{background:var(--ink)}
+.qdots i.now{background:var(--gray-mid)}
+.bar{height:6px;background:var(--gray-light);margin-top:6px;overflow:hidden}
+.bar b{display:block;height:100%;background:var(--ink);transition:width .3s ease}
+.action{display:flex;gap:12px;align-items:center;background:var(--surface);border:2px solid var(--ink);padding:12px 14px}
+.action.warn{border-style:dashed}
+.action p{flex:1;min-width:0;border-left:3px solid var(--ink);padding-left:14px;line-height:1.45}
+.action .who{font-size:12px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em;display:block}
+button{font:inherit;font-size:14px;line-height:1.2;border-radius:0;border:2px solid var(--ink);background:#fff;color:var(--ink);padding:9px 14px;cursor:pointer;transition:background .12s ease,color .12s ease}
+button:hover:not(:disabled){background:var(--ink);color:#fff}
+button.primary{background:var(--ink);color:#fff;text-transform:uppercase;letter-spacing:.04em}
+button.primary:hover:not(:disabled){background:var(--gray-dark);border-color:var(--gray-dark)}
+button:disabled,button.primary:disabled{background:var(--gray-light);color:var(--gray-mid);border-color:var(--gray-light);cursor:not-allowed}
+button.big{font-size:18px;padding:14px 26px;white-space:nowrap}
+button.link{border:0;background:none;padding:0;color:var(--gray-dark);text-decoration:underline}
+button.link:hover:not(:disabled){background:none;color:var(--ink)}
+button:focus-visible{outline:none;box-shadow:4px 4px 0 var(--gray-mid)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;align-items:start}
+.board{background:var(--surface);border:2px solid var(--ink);overflow-x:auto}
+.board svg{display:block;width:100%;min-width:760px;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 14px;border-top:1px solid var(--ink);font-size:12px;color:var(--gray-dark);text-transform:uppercase;letter-spacing:.04em}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block;border:1.5px solid var(--ink);background:#fff}
+.legend i.f{background:var(--ink)}
+.legend i.o{width:20px;border-radius:50%;border-style:dashed}
+.panel{background:var(--surface);border:2px solid var(--ink);padding:16px;display:flex;flex-direction:column;gap:12px}
+.kicker{font-size:12px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.06em}
+.muted{color:var(--gray-dark)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--ink);border:1px solid var(--ink)}
+.stats div{background:var(--surface);padding:7px 10px}
+.stats dt{font-size:12px;color:var(--gray-mid);text-transform:uppercase;letter-spacing:.04em}
+.stats dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+dl{margin:0}
+.exp{background:var(--gray-pale);border-left:3px solid var(--ink);padding:9px 14px;font-size:14px;line-height:1.5}
+.exp strong{font-size:18px;letter-spacing:-.02em}
+.needs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.need{border:2px dashed var(--ink);padding:10px 12px;display:flex;flex-direction:column;gap:5px}
+.need.done{border-style:solid;background:var(--gray-pale)}
+.need .t{align-self:flex-start;font-size:12px;letter-spacing:.02em;padding:2px 12px;border-radius:999px;border:1px solid var(--ink);background:#fff}
+.need.done .t{background:var(--ink);color:#fff}
+.need .n{font-weight:600;line-height:1.3}
+.need .w{font-size:13.5px;color:var(--gray-dark)}
+.need button{align-self:flex-start;margin-top:4px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+ol.how{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.rep{display:flex;flex-direction:column;gap:10px}
+.rrow{border-bottom:1px solid var(--gray-light);padding-bottom:9px}
+.rrow .h{display:flex;justify-content:space-between;gap:8px;font-weight:600}
+.rrow .d{font-size:13px;color:var(--gray-dark)}
+.dots{display:flex;flex-wrap:wrap;gap:3px;margin:5px 0 3px}
+.dots i{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--gray-mid);background:#fff}
+.dots i.w{background:var(--ink);border-color:var(--ink)}
+.pos{font-weight:600} .neg{color:var(--gray-dark)}
+.sum{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-variant-numeric:tabular-nums}
+.sum .tot{font-weight:600;border-top:2px solid var(--ink);padding-top:4px;margin-top:2px}
+/* board */
+.edge{stroke:var(--gray-light);stroke-width:1.3;fill:none}
+.edge.on{stroke:var(--ink);stroke-width:1.8}
+.edge.dash{stroke-dasharray:5 4}
+.ah{fill:var(--gray-light)} .ah-on{fill:var(--ink)}
+.node{cursor:pointer}
+.node ellipse{fill:#fff;stroke:var(--ink);stroke-width:1.5;stroke-dasharray:5 4}
+.node.open ellipse{fill:var(--ink);stroke-dasharray:none;stroke-width:2}
+.node ellipse.ring,.node.open ellipse.ring{fill:none;stroke:var(--ink);stroke-width:2;stroke-dasharray:none}
+.node:hover ellipse:not(.ring){stroke-dasharray:none;stroke-width:2.4}
+.node text{font:13.5px var(--body);fill:var(--ink);text-anchor:middle;pointer-events:none}
+.node.open text{fill:#fff}
+.node .tag,.node.open .tag{font-size:11px;fill:var(--gray-dark);text-transform:uppercase;letter-spacing:.04em}
+.pip{fill:#fff;stroke:var(--ink);stroke-width:1.3}
+.pip.f{fill:var(--ink)}
+.node.open .pip{fill:var(--ink);stroke:#fff}
+.node.open .pip.f{fill:#fff}
+.fig circle{fill:#fff;stroke:var(--ink);stroke-width:1.6}
+.fig path{stroke:var(--ink);stroke-width:1.6;fill:none;stroke-linecap:round}
+.fig.dim circle,.fig.dim path{stroke:var(--gray-mid)}
+.fig.hit circle{fill:var(--ink)}
+.lbl{font:600 13px var(--body);fill:var(--ink);text-anchor:middle}
+.sub{font:11.5px var(--body);fill:var(--gray-mid);text-anchor:middle}
+.sub.got{fill:var(--ink);font-weight:600}
+.colh{font:12px var(--body);fill:var(--gray-dark);text-anchor:middle;letter-spacing:.06em;text-transform:uppercase}
+.endnode{cursor:pointer}
+.endnode.sel .colh{fill:var(--ink);font-weight:700;text-decoration:underline}
+.hitbox{fill:transparent}
+.myth-t{font:400 26px var(--display);fill:var(--ink);text-anchor:middle}
+.myth-s{font:600 16px var(--body);fill:var(--ink);text-anchor:middle;text-transform:uppercase;letter-spacing:.06em}
+.dot{fill:var(--ink)} .dot.l{fill:#fff;stroke:var(--ink);stroke-width:1.5}
+/* debrief */
+.debrief{display:flex;flex-direction:column;gap:14px;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.outcome{padding:22px 24px;border:2px solid var(--ink);background:var(--ink);color:#fff;display:flex;flex-direction:column;gap:14px}
+.outcome.mid{background:var(--gray-dark);border-color:var(--gray-dark)}
+.outcome.fail{background:#fff;color:var(--ink);border-style:dashed}
+.outcome h2{font-size:36px}
+.outcome .kicker,.outcome .facts span{color:inherit;opacity:.65}
+.facts{display:flex;flex-wrap:wrap;gap:8px 32px}
+.facts div{display:flex;flex-direction:column}
+.facts b{font-size:26px;font-weight:600;letter-spacing:-.03em;line-height:1.2;font-variant-numeric:tabular-nums}
+.facts span{font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.lessons{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lesson{background:#fff;border:2px solid var(--ink);padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.lesson .no{font:400 18px/1.25 var(--display)}
+.lesson p{max-width:65ch}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;letter-spacing:.02em;padding:3px 12px;border-radius:999px;background:var(--ink);color:#fff;border:1px solid var(--ink)}
+.chip.off{background:#fff;color:var(--ink);border-style:dashed}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+th,td{text-align:right;padding:6px 10px;border:1px solid var(--ink)}
+th:first-child,td:first-child{text-align:left;font-weight:600}
+th{background:var(--gray-pale);font-weight:600}
+footer{color:var(--gray-mid);font-size:12px;text-transform:uppercase;letter-spacing:.05em;text-align:center;padding:8px 16px 24px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.debrief{animation:none}}
+@media (max-width:960px){
+  .main{grid-template-columns:1fr}
+  .lessons{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .hud{grid-template-columns:1fr 1fr}
+  .action{flex-wrap:wrap}
+  .action p{flex-basis:100%}
+  .action button.big{flex:1}
+  .top h1{font-size:20px}
+  .outcome h2{font-size:28px}
+}
+
+/* UX pass: every action is an uppercase block with a hard offset shadow; nothing else has one. */
+:root{--gray-text:#5c5c5c}
+.tile .k,.kicker,.stats dt,.action .who{color:var(--gray-text)}
+.outcome .kicker{color:inherit}
+.sub{font-size:12.5px;fill:var(--gray-text)}
+button{text-transform:uppercase;letter-spacing:.04em;font-weight:600;font-size:13px;box-shadow:3px 3px 0 var(--gray-mid);transition:transform .08s ease,box-shadow .08s ease,background .12s ease,color .12s ease}
+button:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--gray-mid)}
+button:active:not(:disabled){transform:translate(3px,3px);box-shadow:none}
+button.big{font-size:17px}
+button:disabled,button.primary:disabled{box-shadow:none;color:var(--gray-dark);border-style:dashed;border-color:var(--gray-mid);background:var(--gray-pale)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;box-shadow:3px 3px 0 var(--gray-mid)}
+.action{position:sticky;top:0;z-index:5}
+.need .t,.need.done .t{border:0;border-radius:0;padding:0;background:none;color:var(--gray-text);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.need.done .t{color:var(--ink);font-weight:600}
+.chip{background:var(--gray-pale);color:var(--ink);border:1px solid var(--gray-light)}
+.chip.off{border:1px dashed var(--gray-mid);color:var(--gray-text)}
+.node .tag,.node.open .tag{fill:var(--ink);paint-order:stroke;stroke:#fff;stroke-width:3px;font-size:11px}
+.node:hover ellipse:not(.ring){stroke-width:3}
+.node:not(.open):hover ellipse:not(.ring){fill:var(--gray-pale)}
+.hshadow{fill:var(--gray-mid)}
+.hbox{fill:#fff;stroke:var(--ink);stroke-width:1.6}
+.endnode:hover .hbox{fill:var(--gray-pale)}
+.endnode.sel .hbox{fill:var(--ink)}
+.endnode.sel .colh{fill:#fff;text-decoration:none}
+.endnode.sel .pip{fill:var(--ink);stroke:#fff}
+.endnode.sel .pip.f{fill:#fff}
+.colh{fill:var(--ink);font-weight:600}
+.legend{color:var(--gray-dark)}
+@media (max-width:620px){.action{padding:10px}.action button.big{font-size:15px;padding:12px 14px}}
+
+.export{background:#fff;border:2px solid var(--ink);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.export img{max-width:100%;height:auto;border:1px solid var(--ink);display:block}
+.export textarea{width:100%;min-height:200px;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;border:2px solid var(--ink);border-radius:0;padding:10px;background:var(--gray-pale);color:var(--ink)}
+.toast{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+<header class="top"><div class="inner">
+  <h1>Route to Market</h1>
+  <p>A go-to-market game for founders. Eight quarters, $250k in the bank, one product. Reach $1M in revenue before the cash runs out.</p>
+</div></header>
+<div class="wrap">
+  <section class="hud" id="hud" aria-live="polite"></section>
+  <section class="action" id="action"></section>
+  <section id="debrief" class="debrief" hidden></section>
+  <div class="main">
+    <section class="board">
+      <svg id="svg" viewBox="0 0 1000 610" role="group" aria-label="Go-to-market network">
+        <defs>
+          <marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path class="ah" d="M0 0L8 4L0 8z"/></marker>
+          <marker id="ah-on" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path class="ah-on" d="M0 0L8 4L0 8z"/></marker>
+        </defs>
+        <g id="net"></g>
+        <g id="fx"></g>
+      </svg>
+      <div class="legend" id="legend"></div>
+    </section>
+    <aside class="panel" id="panel" aria-live="polite"></aside>
+  </div>
+</div>
+<footer>Based on the go-to-market channel diagram by <a href="https://www.linkedin.com/in/chrisjandrews/">Chris Andrews</a>. Figures are illustrative, not benchmarks.
+  <br>&copy; <a href="https://www.evolutioninformatique.fr">&Eacute;volution Informatique SAS</a> 2026.</footer>
+<script>
+const CFG = { quarters: 8, startCash: 250, burn: 30, target: 1000 };
+const FACTOR = [0.2, 0.45, 0.75, 1];
+const BUYER_FACTOR = [0.7, 0.85, 1, 1.15];
+const RETENTION = [0.35, 0.55, 0.75, 0.9];
+
+const SEGMENTS = [
+  { id: 'smb', name: 'Small businesses', note: 'Many buyers, small orders. The owner buys and the staff use it.' },
+  { id: 'mid', name: 'Mid-market firms', note: 'A department head buys. They want a person to talk to.' },
+  { id: 'ent', name: 'Enterprises', note: 'Procurement and IT buy. Users may never meet your seller.' },
+  { id: 'abroad', name: 'Markets abroad', note: 'Other languages, currencies and laws. Local partners hold the relationships.' },
+  { id: 'embed', name: "Another vendor's customers", note: 'They buy a bigger solution. Your product arrives inside it.' }
+];
+
+const CHANNELS = [
+  { id: 'inside', name: 'Inside Sales', kind: 'Your own team', open: 25, upkeep: 22, n: 10, p: 0.22, deal: 18, keep: 1, ramp: 0,
+    segs: ['smb', 'mid', 'mid'],
+    blurb: 'Sellers on phone and video who work inbound leads and close mid-sized deals.',
+    needs: [
+      { id: 'leads', type: 'Lead generation', name: 'A steady flow of qualified leads', cost: 15, why: 'Sellers with an empty calendar close nothing.' },
+      { id: 'enable', type: 'Sales enablement', name: 'Demo script, pitch and pricing calculator', cost: 10, why: 'They need to explain your product in the buyer’s terms, the same way every time.' },
+      { id: 'comp', type: 'Incentives', name: 'A commission plan that pays on closed deals', cost: 10, why: 'People sell what they are paid to sell.' }
+    ] },
+  { id: 'field', name: 'Outside (Field) Sales', kind: 'Your own team', open: 50, upkeep: 45, n: 3, p: 0.18, deal: 160, keep: 1, ramp: 2,
+    segs: ['ent'],
+    blurb: 'Senior account executives who meet enterprise buyers in person. Few deals, large ones, long cycles.',
+    needs: [
+      { id: 'enable', type: 'Sales enablement', name: 'ROI model, security answers and proposal templates', cost: 15, why: 'Enterprise deals stall on the questions your seller cannot answer.' },
+      { id: 'proof', type: 'Credibility', name: 'Reference customers and case studies', cost: 15, why: 'Nobody wants to be your first big customer.' },
+      { id: 'leads', type: 'Lead generation', name: 'Account-based marketing that gets executive meetings', cost: 20, why: 'A field seller’s scarcest resource is access.' }
+    ] },
+  { id: 'estore', name: 'E-store / Retail', kind: 'Self-serve', open: 15, upkeep: 4, n: 24, p: 0.12, deal: 4, keep: 0.95, ramp: 0,
+    segs: ['smb'],
+    blurb: 'Buyers find you, try the product and pay by card. Cheap to run, small orders.',
+    needs: [
+      { id: 'leads', type: 'Lead generation', name: 'Search, content and ads that bring visitors', cost: 12, why: 'A store nobody visits sells nothing.' },
+      { id: 'trial', type: 'Product experience', name: 'Free trial with self-serve onboarding', cost: 12, why: 'There is no seller here. The product has to sell itself.' },
+      { id: 'ease', type: 'Ease of buying', name: 'Clear pricing and packaging', cost: 6, why: 'If the buyer has to ask what it costs, they leave.' }
+    ] },
+  { id: 'dist', name: 'Distributor', kind: 'Partner', open: 15, upkeep: 5, n: 8, p: 0.25, deal: 22, keep: 0, ramp: 1, via: 'reseller',
+    segs: ['abroad'],
+    blurb: 'Recruits and supplies resellers in markets you cannot cover. Sells nothing to buyers directly.',
+    needs: [
+      { id: 'margin', type: 'Profitability', name: 'Distributor margin (7 more points of each deal)', cost: 0, share: 0.07, why: 'They carry thousands of products. They push the ones that pay.' },
+      { id: 'cert', type: 'Certification', name: 'A certification program they can run for resellers', cost: 15, why: 'Training resellers is how a distributor earns its place in the chain.' },
+      { id: 'ease', type: 'Ease of doing business', name: 'Price lists, deal registration and simple ordering', cost: 10, why: 'If you are hard to order from, you fall off the line card.' }
+    ] },
+  { id: 'reseller', name: 'Reseller', kind: 'Partner', open: 20, upkeep: 8, n: 8, p: 0.25, deal: 22, keep: 0.85, ramp: 0,
+    segs: ['mid', 'mid', 'smb'],
+    blurb: 'Local firms that sell, install and support your product alongside their own services.',
+    needs: [
+      { id: 'margin', type: 'Profitability', name: 'Reseller margin (20 more points of each deal)', cost: 0, share: 0.2, why: 'Their salespeople earn commission on margin. No margin, no attention.' },
+      { id: 'enable', type: 'Sales enablement', name: 'Partner sales training and a demo environment', cost: 12, why: 'They will not pitch what they cannot demo.' },
+      { id: 'cert', type: 'Certification', name: 'Technical certification for their consultants', cost: 12, why: 'Their real profit is implementation services. Certification lets them charge for it.' }
+    ] },
+  { id: 'isv', name: 'ISV', kind: 'Partner', open: 35, upkeep: 8, n: 5, p: 0.3, deal: 30, keep: 0.75, ramp: 1,
+    segs: ['ent', 'embed'],
+    blurb: 'An independent software vendor that builds your product into its own solution and sells the combination.',
+    needs: [
+      { id: 'integ', type: 'Integration', name: 'A documented API and SDK', cost: 20, why: 'Their engineers decide whether you get built in. Give them something to build on.' },
+      { id: 'comarket', type: 'Co-marketing', name: 'Joint solution marketing', cost: 10, why: 'They want your product to make theirs easier to sell.' },
+      { id: 'support', type: 'Support', name: 'Engineer-to-engineer partner support', cost: 10, why: 'When the integration breaks, their customer calls them.' }
+    ] },
+  { id: 'wl', name: 'White Label', kind: 'Partner', open: 40, upkeep: 6, n: 2, p: 0.35, deal: 90, keep: 0.6, ramp: 1,
+    segs: ['embed'],
+    blurb: 'Another company sells your product under its own brand. Its customers never learn your name.',
+    needs: [
+      { id: 'brand', type: 'Brand control', name: 'A rebrandable product: their logo, their domain', cost: 20, why: 'They are buying the right to call it theirs.' },
+      { id: 'margin', type: 'Profitability', name: 'Wholesale pricing (15 more points of each deal)', cost: 0, share: 0.15, why: 'They set the street price and need room under it.' },
+      { id: 'support', type: 'Reliability', name: 'An uptime commitment with penalties', cost: 12, why: 'Their name is on it. Your outage is their reputation.' }
+    ] }
+];
+
+const ENDS = {
+  buyer: { id: 'buyer', name: 'Buyers', blurb: 'The person who signs. Often not the person who will use the product. Value here raises the win chance in every channel.',
+    needs: [
+      { id: 'roi', type: 'Business case', name: 'An ROI calculator and payback story', cost: 12, why: 'Buyers justify spend to someone above them.' },
+      { id: 'ease', type: 'Ease of buying', name: 'Standard contract, security pack, purchase-order terms', cost: 12, why: 'Legal and IT can veto a deal the user loves.' },
+      { id: 'risk', type: 'Low risk', name: 'Paid pilot with an exit clause', cost: 12, why: 'A wrong purchase costs the buyer more than a missed one.' }
+    ] },
+  user: { id: 'user', name: 'Users', blurb: 'The people who work with the product. They decide whether it gets used, and so whether the buyer renews after a year.',
+    needs: [
+      { id: 'onboard', type: 'Onboarding', name: 'Guided setup and training', cost: 12, why: 'Software nobody learned to use is cancelled at renewal.' },
+      { id: 'help', type: 'Support', name: 'A helpdesk that answers', cost: 12, why: 'One unanswered ticket becomes a renewal objection.' },
+      { id: 'community', type: 'Community', name: 'Templates, tips and a user forum', cost: 10, why: 'Users who get better at their job with your product defend it.' }
+    ] }
+};
+
+function newState() {
+  const s = { q: 1, cash: CFG.startCash, revenue: 0, over: null, ch: {}, buyer: {}, user: {}, customers: [], history: [], endSpent: { buyer: 0, user: 0 }, renewRev: 0 };
+  CHANNELS.forEach(c => { s.ch[c.id] = { open: false, openedQ: null, needs: {}, spent: 0, earned: 0, opps: 0, wins: 0 }; });
+  return s;
+}
+const chan = id => CHANNELS.find(c => c.id === id);
+const count = o => Object.keys(o).filter(k => o[k]).length;
+const nodeNeeds = (s, id) => (id === 'buyer' || id === 'user') ? s[id] : s.ch[id].needs;
+const nodeDef = id => ENDS[id] || chan(id);
+
+function keepShare(s, id) {
+  const c = chan(id);
+  if (c.via) {
+    const d = c.needs.find(n => n.share);
+    return keepShare(s, c.via) - 0.05 - (s.ch[id].needs[d.id] ? d.share : 0);
+  }
+  let k = c.keep;
+  c.needs.forEach(n => { if (n.share && s.ch[id].needs[n.id]) k -= n.share; });
+  return k;
+}
+function factor(s, id) {
+  const c = chan(id);
+  let f = FACTOR[count(s.ch[id].needs)];
+  if (c.via) f = s.ch[c.via].open ? Math.min(f, FACTOR[count(s.ch[c.via].needs)]) : 0;
+  return f;
+}
+function winChance(s, id) {
+  return Math.min(0.95, chan(id).p * factor(s, id) * BUYER_FACTOR[count(s.buyer)]);
+}
+function retention(s) { return RETENTION[count(s.user)]; }
+function activeFrom(s, id) { return s.ch[id].openedQ + chan(id).ramp; }
+function expected(s, id) { const c = chan(id); return c.n * winChance(s, id) * c.deal * keepShare(s, id); }
+function upkeepTotal(s) { return CHANNELS.reduce((a, c) => a + (s.ch[c.id].open ? c.upkeep : 0), 0); }
+
+function openChannel(s, id) {
+  const c = chan(id), st = s.ch[id];
+  if (st.open || s.cash < c.open) return false;
+  s.cash -= c.open; st.spent += c.open; st.open = true; st.openedQ = s.q; return true;
+}
+function closeChannel(s, id) { s.ch[id].open = false; }
+function invest(s, id, needId) {
+  const def = nodeDef(id), need = def.needs.find(n => n.id === needId), have = nodeNeeds(s, id);
+  if (have[needId] || s.cash < need.cost) return false;
+  s.cash -= need.cost; have[needId] = true;
+  if (s.ch[id]) s.ch[id].spent += need.cost; else s.endSpent[id] += need.cost;
+  return true;
+}
+
+function runQuarter(s, rnd) {
+  rnd = rnd || Math.random;
+  const r = { q: s.q, rows: [], renewals: { due: 0, kept: 0, rev: 0 }, rev: 0, costs: 0 };
+  CHANNELS.forEach(c => {
+    const st = s.ch[c.id];
+    if (!st.open) return;
+    const row = { id: c.id, opps: [], rev: 0, wins: 0, state: 'live', k: count(st.needs), exp: 0 };
+    if (c.via && !s.ch[c.via].open) row.state = 'blocked';
+    else if (s.q < activeFrom(s, c.id)) row.state = 'ramp';
+    else {
+      const p = winChance(s, c.id), k = keepShare(s, c.id);
+      row.p = p; row.exp = expected(s, c.id);
+      for (let i = 0; i < c.n; i++) {
+        const seg = c.segs[Math.floor(rnd() * c.segs.length)];
+        const won = rnd() < p;
+        const net = won ? Math.round(c.deal * k * 10) / 10 : 0;
+        row.opps.push({ seg, won, net });
+        if (won) { row.wins++; row.rev += net; s.customers.push({ q: s.q, ch: c.id, seg, net }); }
+      }
+      st.opps += c.n; st.wins += row.wins; st.earned += row.rev;
+    }
+    st.spent += c.upkeep; r.costs += c.upkeep;
+    r.rev += row.rev; r.rows.push(row);
+  });
+  const ret = retention(s);
+  s.customers.filter(cu => cu.q === s.q - 4).forEach(cu => {
+    r.renewals.due++;
+    if (rnd() < ret) { r.renewals.kept++; r.renewals.rev += cu.net; s.ch[cu.ch].earned += cu.net; s.customers.push({ q: s.q, ch: cu.ch, seg: cu.seg, net: cu.net, renewal: true }); }
+  });
+  r.rev += r.renewals.rev; s.renewRev += r.renewals.rev;
+  r.costs += CFG.burn;
+  r.rev = Math.round(r.rev);
+  s.cash = Math.round(s.cash + r.rev - r.costs);
+  s.revenue += r.rev;
+  r.cash = s.cash; r.total = s.revenue;
+  s.history.push(r);
+  if (s.cash < 0) s.over = 'broke';
+  else if (s.q >= CFG.quarters) s.over = 'done';
+  else s.q++;
+  return r;
+}
+function segmentsReached(s) { const set = {}; s.customers.forEach(c => { set[c.seg] = (set[c.seg] || 0) + 1; }); return set; }
+if (typeof module !== 'undefined') module.exports = { CFG, CHANNELS, ENDS, SEGMENTS, newState, openChannel, invest, runQuarter, expected, upkeepTotal, segmentsReached, winChance };
+
+</script>
+<script>
+(function(){
+const $ = s => document.querySelector(s);
+let S = newState(), stage = 'myth', sel = null, busy = false, mythShipped = false, last = null;
+
+const POS = { dev:[70,330], inside:[400,50], field:[400,132], estore:[400,214], dist:[318,300], reseller:[492,352], isv:[400,442], wl:[400,527] };
+const SEGY = { smb:78, mid:192, ent:306, abroad:420, embed:534 };
+const BX = 770, UX = 900, RX = 74, RY = 28;
+const LINES = { field:['Outside (Field)','Sales'] };
+
+const fmt = v => { v = Math.round(v); const a = Math.abs(v); return (v < 0 ? '−' : '') + (a >= 1000 ? '$' + (a/1000).toFixed(2) + 'M' : '$' + a + 'k'); };
+const pct = v => Math.round(v * 100) + '%';
+const segName = id => SEGMENTS.find(g => g.id === id).name;
+
+function fig(x, y, cls){ return `<g class="fig ${cls||''}"><circle cx="${x}" cy="${y-18}" r="7"/><path d="M${x} ${y-11}V${y+8}M${x-12} ${y-3}H${x+12}M${x} ${y+8}l-9 14M${x} ${y+8}l9 14"/></g>`; }
+function edgePt(c, t){ const dx = t[0]-c[0], dy = t[1]-c[1], k = 1/Math.sqrt((dx/RX)**2 + (dy/RY)**2); return [c[0]+dx*k, c[1]+dy*k]; }
+function edge(a, b, on, dash){ return `<line class="edge${on?' on':''}${dash?' dash':''}" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" marker-end="url(#${on?'ah-on':'ah'})"/>`; }
+function pips(x, y, n, tot){ let h = ''; for (let i = 0; i < tot; i++) h += `<circle class="pip${i<n?' f':''}" cx="${x + (i-(tot-1)/2)*11}" cy="${y}" r="3.6"/>`; return h; }
+
+function drawMyth(){
+  $('#net').innerHTML =
+    `<text class="myth-t" x="500" y="150">How many people think go-to-market looks</text>` +
+    edge([200,300],[800,300], false) + fig(180,300) + fig(820,300) +
+    `<text class="lbl" x="180" y="340">Product Developer</text><text class="sub" x="180" y="356">you</text>` +
+    `<text class="lbl" x="820" y="340">User</text>` +
+    (mythShipped ? `<text class="myth-s" x="500" y="270">No sale.</text><text class="sub" x="500" y="420" style="font-size:14px">The user cannot sign an order. The buyer has never heard of you. Nobody had a reason to sell it.</text>` : '');
+}
+
+function drawNet(){
+  const dev = [88, 330], reached = segmentsReached(S);
+  const hit = {}; if (last && stage !== 'myth') last.rows.forEach(r => r.opps.forEach(o => { if (o.won) hit[o.seg] = 1; }));
+  if (S.over) Object.keys(reached).forEach(k => { hit[k] = 1; });
+  let e = '', n = '';
+  CHANNELS.forEach(c => {
+    const st = S.ch[c.id], p = POS[c.id], live = st.open && (!c.via || S.ch[c.via].open);
+    e += edge(dev, edgePt(p, dev), st.open);
+    if (c.via) e += edge(edgePt(p, POS[c.via]), edgePt(POS[c.via], p), live);
+    const src = c.via ? POS[c.via] : p;
+    [...new Set(c.segs)].forEach(sg => { const t = [BX-16, SEGY[sg]]; e += edge(edgePt(src, t), t, live, !!c.via); });
+    const lines = LINES[c.id] || [c.name], two = lines.length > 1;
+    let tag = '';
+    if (st.open && c.via && !S.ch[c.via].open) tag = 'needs a reseller';
+    else if (st.open && S.q < activeFrom(S, c.id) && !S.over) tag = 'first deals Q' + activeFrom(S, c.id);
+    else if (!st.open && !S.over) tag = fmt(c.open) + ' to open';
+    n += `<g class="node${st.open?' open':''}${sel===c.id?' sel':''}" data-node="${c.id}" tabindex="0" role="button" aria-label="${c.name}, ${st.open?'open':'not open'}, ${count(st.needs)} of 3 needs met">
+      ${sel===c.id ? `<ellipse class="ring" cx="${p[0]}" cy="${p[1]}" rx="${RX+5}" ry="${RY+5}"/>` : ''}<ellipse cx="${p[0]}" cy="${p[1]}" rx="${RX}" ry="${RY}"/>
+      ${two ? `<text x="${p[0]}" y="${p[1]-9}">${lines[0]}</text><text x="${p[0]}" y="${p[1]+6}">${lines[1]}</text>` : `<text x="${p[0]}" y="${p[1]}">${lines[0]}</text>`}
+      ${pips(p[0], p[1] + (two ? 17 : 14), count(st.needs), 3)}
+      ${tag ? `<text class="tag" x="${p[0]}" y="${c.id === 'dist' ? p[1]+RY+30 : p[1]+RY+13}">${tag}</text>` : ''}</g>`;
+  });
+  let g = '';
+  SEGMENTS.forEach(sg => {
+    const y = SEGY[sg.id], cnt = S.customers.filter(c => c.seg === sg.id && !c.renewal).length;
+    e += edge([BX+16, y], [UX-16, y], cnt > 0);
+    g += `<g class="endnode" data-node="buyer">${fig(BX, y, (cnt?'':'dim') + (hit[sg.id]?' hit':''))}<rect class="hitbox" x="${BX-18}" y="${y-28}" width="36" height="54"/></g>` +
+      `<g class="endnode" data-node="user">${fig(UX, y, (cnt?'':'dim') + (hit[sg.id]?' hit':''))}<rect class="hitbox" x="${UX-18}" y="${y-28}" width="36" height="54"/></g>` +
+      `<text class="lbl" x="${(BX+UX)/2}" y="${y+40}">${sg.name}</text>` +
+      `<text class="sub${cnt?' got':''}" x="${(BX+UX)/2}" y="${y+55}">${cnt ? cnt + (cnt===1?' customer':' customers') : 'not reached'}</text>`;
+  });
+  const head = (id, x, label) => `<g class="endnode${sel===id?' sel':''}" data-node="${id}" tabindex="0" role="button" aria-label="${label}, ${count(S[id])} of 3 needs met"><rect class="hshadow" x="${x-41}" y="6" width="88" height="38"/><rect class="hbox" x="${x-44}" y="3" width="88" height="38"/><text class="colh" x="${x}" y="19">${label}</text>${pips(x, 31, count(S[id]), 3)}</g>`;
+  $('#net').innerHTML = e + fig(70, 330) + `<text class="lbl" x="70" y="370">Product</text><text class="lbl" x="70" y="385">Developer</text><text class="sub" x="70" y="400">you</text>` + n + g + head('buyer', BX, 'Buyers') + head('user', UX, 'Users');
+}
+
+function hud(){
+  const costs = CFG.burn + upkeepTotal(S), after = S.cash - costs;
+  const qd = Array.from({length: CFG.quarters}, (_, i) => `<i class="${i+1 < S.q || S.over ? 'done' : i+1 === S.q ? 'now' : ''}"></i>`).join('');
+  $('#hud').innerHTML =
+    `<div class="tile"><div class="k">Quarter</div><div class="v">${stage==='myth' ? 'Day 1' : 'Q' + S.q + ' of ' + CFG.quarters}</div><div class="qdots">${stage==='myth' ? qd.replace(/now/,'') : qd}</div></div>` +
+    `<div class="tile${S.cash < costs ? ' bad' : ''}"><div class="k">Cash</div><div class="v">${fmt(S.cash)}</div><div class="s">${S.over ? 'at the end of the game' : fmt(after) + " after this quarter's costs, before sales"}</div></div>` +
+    `<div class="tile"><div class="k">Costs per quarter</div><div class="v">${fmt(costs)}</div><div class="s">${fmt(CFG.burn)} team + ${fmt(upkeepTotal(S))} channels</div></div>` +
+    `<div class="tile"><div class="k">Revenue</div><div class="v">${fmt(S.revenue)}</div><div class="bar"><b style="width:${Math.min(100, S.revenue / CFG.target * 100)}%"></b></div><div class="s">target ${fmt(CFG.target)}</div></div>`;
+}
+
+function advice(){
+  const open = CHANNELS.filter(c => S.ch[c.id].open), costs = CFG.burn + upkeepTotal(S);
+  if (!open.length) return ['No channel is open, so nothing can reach a buyer. Select an oval on the map to open one.', true];
+  const idle = open.find(c => count(S.ch[c.id].needs) === 0);
+  if (idle) return [`${idle.name} is open, but you have given it no reason to sell your product. Its win chance is ${pct(winChance(S, idle.id))}. Select it and create value for it.`, true];
+  const blocked = open.find(c => c.via && !S.ch[c.via].open);
+  if (blocked) return ['A distributor supplies resellers. With no reseller open, nothing moves through it.', true];
+  if (S.cash < costs) return [`Costs this quarter are ${fmt(costs)} and you hold ${fmt(S.cash)}. If sales do not cover the gap, the company closes.`, true];
+  if (count(S.buyer) === 0 && S.q >= 2) return ['Every deal in every channel ends at a buyer. So far buyers have nothing from you except the product. Select Buyers at the top right.', false];
+  const reached = Object.keys(segmentsReached(S)).length;
+  if (S.q >= 3 && open.length === 1) return [`One channel reaches one kind of customer. ${5 - reached} of 5 customer groups have never been offered your product.`, false];
+  if (count(S.user) === 0 && S.q >= 4 && S.customers.length) return [`Customers renew a year after they buy, if their users are getting value. With no onboarding or support, ${pct(retention(S))} renew. Select Users at the top right.`, false];
+  const weak = open.find(c => count(S.ch[c.id].needs) < 3);
+  if (weak) return [`${weak.name} has ${count(S.ch[weak.id].needs)} of 3 needs met. Each one you add raises its win chance.`, false];
+  return ['Your open channels are fully supported. Open another to reach customers these ones cannot, or run the quarter.', false];
+}
+
+function action(){
+  const el = $('#action');
+  el.hidden = stage === 'end';
+  if (stage === 'myth') {
+    el.className = 'action';
+    el.innerHTML = mythShipped
+      ? `<p><span class="who">What happened</span>Users do not buy software. Buyers do, and they buy through channels. Each channel is run by people who need their own reason to sell your product.</p><button class="primary big" data-act="real">Show the real map</button>`
+      : `<p><span class="who">Day 1</span>You built a product users will love. All that is left is to put it in their hands.</p><button class="primary big" data-act="ship">Ship it to the user</button>`;
+    return;
+  }
+  const [msg, warn] = advice();
+  el.className = 'action' + (warn ? ' warn' : '');
+  el.innerHTML = `<p><span class="who">Advisor</span>${msg}</p>` +
+    (last ? `<button data-act="report" ${busy?'disabled':''}>View Q${last.q} results</button>` : '') +
+    `<button class="primary big" data-act="run" ${busy?'disabled':''}>${busy ? 'Selling…' : 'Run Q' + S.q + ' ▸'}</button>`;
+}
+
+function needList(id){
+  const def = nodeDef(id), have = nodeNeeds(S, id);
+  return `<ul class="needs">` + def.needs.map(nd => {
+    const done = have[nd.id];
+    const btn = done ? '' : nd.share
+      ? `<button class="primary" data-act="invest" data-id="${id}" data-need="${nd.id}" ${busy?'disabled':''}>Agree: give ${Math.round(nd.share*100)} points per deal</button>`
+      : `<button class="primary" data-act="invest" data-id="${id}" data-need="${nd.id}" ${busy || S.cash < nd.cost ? 'disabled' : ''}>${S.cash < nd.cost ? 'Costs ' + fmt(nd.cost) + ': not enough cash' : 'Create for ' + fmt(nd.cost)}</button>`;
+    return `<li class="need${done?' done':''}"><span class="t">${nd.type}${done?' ✓ created':''}</span><span class="n">${nd.name}</span><span class="w">${nd.why}</span>${btn}</li>`;
+  }).join('') + `</ul>`;
+}
+
+function panelChannel(id){
+  const c = chan(id), st = S.ch[id], k = count(st.needs);
+  const full = c.n * Math.min(.95, c.p * BUYER_FACTOR[count(S.buyer)]) * c.deal * keepShare(S, id);
+  const left = CFG.quarters - S.q + 1;
+  const segs = [...new Set(c.segs)].map(segName).join(', ');
+  const cycle = c.ramp ? `${c.ramp} quarter${c.ramp>1?'s':''} before first deals` : 'Deals from the first quarter';
+  let ctl;
+  if (st.open) ctl = `<div class="row"><strong>Open since Q${st.openedQ}</strong><button data-act="close" data-id="${id}" ${busy?'disabled':''}>Shut down, save ${fmt(c.upkeep)} a quarter</button></div>`;
+  else ctl = `<div class="row"><button class="primary" data-act="open" data-id="${id}" ${busy || S.cash < c.open ? 'disabled' : ''}>${S.cash < c.open ? 'Costs ' + fmt(c.open) + ' to open: not enough cash' : 'Open channel for ' + fmt(c.open)}</button></div>` +
+    (c.ramp >= left ? `<p class="neg">Too late: its first deals would land after Q${CFG.quarters}.</p>` : '');
+  const via = c.via ? `<p class="muted">Works only through an open Reseller, and is never stronger than that reseller.</p>` : '';
+  return `<span class="kicker">${c.kind}</span><h2>${c.name}</h2><p>${c.blurb}</p>${via}
+    <dl class="stats">
+      <div><dt>Reaches</dt><dd>${segs}</dd></div>
+      <div><dt>Opportunities per quarter</dt><dd>${c.n}</dd></div>
+      <div><dt>Win chance now</dt><dd>${pct(winChance(S, id))} <span class="muted">of up to ${pct(Math.min(.95, c.p * BUYER_FACTOR[count(S.buyer)]))}</span></dd></div>
+      <div><dt>Deal size</dt><dd>${fmt(c.deal)}</dd></div>
+      <div><dt>You keep</dt><dd>${pct(keepShare(S, id))}</dd></div>
+      <div><dt>Running cost</dt><dd>${fmt(c.upkeep)} per quarter</dd></div>
+      <div style="grid-column:1/-1"><dt>Sales cycle</dt><dd>${cycle}</dd></div>
+    </dl>
+    <div class="exp">Expected revenue per quarter: <strong class="num">${fmt(expected(S, id))}</strong><br><span class="muted">${k < 3 ? 'With all three needs met: ' + fmt(full) + '.' : 'All needs met.'} Actual results vary with luck.</span></div>
+    ${ctl}
+    <h3>What ${c.name} needs from you</h3>${needList(id)}`;
+}
+function panelEnd(id){
+  const d = ENDS[id], k = count(S[id]);
+  const eff = id === 'buyer'
+    ? `Win chance in every channel is multiplied by <strong class="num">${BUYER_FACTOR[k].toFixed(2)}</strong><br><span class="muted">From 0.70 with nothing to 1.15 with all three.</span>`
+    : `Renewal rate after one year: <strong class="num">${pct(RETENTION[k])}</strong><br><span class="muted">From 35% with nothing to 90% with all three. Your product already solves their problem. That was the one piece of value you had on day one.</span>`;
+  return `<span class="kicker">End of the network</span><h2>${d.name}</h2><p>${d.blurb}</p><div class="exp">${eff}</div><h3>What ${d.name.toLowerCase()} need from you</h3>${needList(id)}`;
+}
+function panelHow(){
+  return `<span class="kicker">How it actually looks</span><h2>Your route to market</h2>
+    <p>Seven channels can carry your product to five groups of customers. Each oval is a business or a team with its own interests.</p>
+    <ol class="how">
+      <li><strong>Select an oval</strong>, or the Buyers and Users boxes, to see who it reaches, its odds and its payoff. Open the ones you want.</li>
+      <li><strong>Create value for that node.</strong> The three dots under its name are its needs. An open channel with empty dots barely sells.</li>
+      <li><strong>Run the quarter.</strong> Opportunities travel the map. Some close, most do not.</li>
+    </ol>
+    <p class="muted">Buyers and Users at the top right have needs too. Cash below zero at the end of a quarter ends the game.</p>`;
+}
+function panelReport(){
+  const r = last; let h = `<span class="kicker">Results</span><h2>Quarter ${r.q}</h2><div class="rep">`;
+  if (!r.rows.length) h += `<p>No channel was open. Nothing was offered to anyone.</p>`;
+  let exp = 0;
+  r.rows.forEach(row => {
+    const c = chan(row.id); exp += row.exp;
+    if (row.state === 'ramp') h += `<div class="rrow"><div class="h"><span>${c.name}</span><span class="muted">$0k</span></div><div class="d">Deals still in progress. First results in Q${activeFrom(S, row.id)}.</div></div>`;
+    else if (row.state === 'blocked') h += `<div class="rrow"><div class="h"><span>${c.name}</span><span class="muted">$0k</span></div><div class="d">No reseller to supply.</div></div>`;
+    else h += `<div class="rrow"><div class="h"><span>${c.name}</span><span class="${row.rev?'pos':'muted'} num">+${fmt(row.rev)}</span></div>
+      <div class="dots">${row.opps.map(o => `<i class="${o.won?'w':''}"></i>`).join('')}</div>
+      <div class="d">${row.wins} of ${row.opps.length} won at ${pct(row.p)} win chance (${row.k} of 3 needs met). Expected ${fmt(row.exp)}.</div></div>`;
+  });
+  if (r.renewals.due) h += `<div class="rrow"><div class="h"><span>Renewals</span><span class="${r.renewals.rev?'pos':'muted'} num">+${fmt(r.renewals.rev)}</span></div><div class="d">${r.renewals.kept} of ${r.renewals.due} customers from Q${r.q-4} renewed.</div></div>`;
+  h += `<div class="sum"><span>Revenue</span><span class="pos">+${fmt(r.rev)}</span><span>Costs</span><span class="neg">−${fmt(r.costs)}</span><span class="tot">Cash</span><span class="tot">${fmt(r.cash)}</span></div>`;
+  if (exp > 0) { const new_ = r.rev - Math.round(r.renewals.rev); h += `<p class="muted">New sales were ${fmt(new_)} against ${fmt(exp)} expected. ${new_ > exp * 1.25 ? 'A lucky quarter.' : new_ < exp * 0.75 ? 'An unlucky quarter.' : 'About what the odds predicted.'}</p>`; }
+  return h + `</div>`;
+}
+function panel(){
+  const el = $('#panel');
+  if (stage === 'myth') { el.innerHTML = `<span class="kicker">Go-to-market</span><h2>From product to user</h2><p>Go-to-market is the process by which you move a product through a network of direct and intermediary sellers into a customer organization, so that end users can implement or consume it.</p><p class="muted">Most first-time founders picture something simpler. Try it.</p>`; return; }
+  if (stage === 'end') { el.innerHTML = sel && sel !== 'report' ? (ENDS[sel] ? panelEnd(sel) : panelChannel(sel)) : (last ? panelReport() : panelHow()); el.querySelectorAll('button').forEach(b => b.remove()); return; }
+  el.innerHTML = sel === 'report' && last ? panelReport() : !sel || sel === 'report' ? panelHow() : ENDS[sel] ? panelEnd(sel) : panelChannel(sel);
+}
+
+function summary(){
+  const used = CHANNELS.filter(c => S.ch[c.id].spent > 0), newCust = S.customers.filter(c => !c.renewal);
+  const gtm = used.reduce((a, c) => a + S.ch[c.id].spent, 0) + S.endSpent.buyer + S.endSpent.user;
+  const cls = S.over === 'broke' ? 'fail' : S.revenue >= CFG.target ? 'win' : 'mid';
+  const head = S.over === 'broke' ? `Out of cash in Q${S.q}` : S.revenue >= CFG.target ? 'You built a go-to-market' : S.revenue >= 500 ? 'Traction, but not yet a business' : 'A product without a route to market';
+  const lead = S.over === 'broke' ? 'Costs outran sales. Channels cost money every quarter whether or not they sell, and some take quarters to pay back.'
+    : S.revenue >= CFG.target ? `${fmt(S.revenue)} in two years, through ${used.filter(c => S.ch[c.id].wins).length} channels that each had a reason to sell.`
+    : `${fmt(S.revenue)} against a ${fmt(CFG.target)} target. Look at which customer groups you never reached and which channels sat idle.`;
+  const segs = SEGMENTS.map(sg => { const cs = newCust.filter(c => c.seg === sg.id); return { name: sg.name, count: cs.length, via: [...new Set(cs.map(c => chan(c.ch).name))] }; });
+  const rows = used.map(c => { const st = S.ch[c.id]; return { name: c.name, opps: st.opps, wins: st.wins, rate: st.opps ? pct(st.wins / st.opps) : '–', spent: st.spent, earned: st.earned, roi: st.spent ? st.earned / st.spent : 0 }; }).sort((a, b) => b.roi - a.roi);
+  const l3 = rows.length > 1 ? `Your best channel, ${rows[0].name}, returned $${rows[0].roi.toFixed(2)} for each $1 you put in. ${rows[rows.length-1].name} returned $${rows[rows.length-1].roi.toFixed(2)}. Same product, same price list.`
+    : rows.length ? 'You ran one channel, so you saw one set of odds. Each of the other six has a different win chance, deal size, share and waiting time.' : 'You opened no channels, so there were no odds to play.';
+  const types = {}; let made = 0;
+  CHANNELS.forEach(c => c.needs.forEach(nd => { if (S.ch[c.id].needs[nd.id]) { types[nd.type] = (types[nd.type]||0) + 1; made++; } }));
+  ['buyer','user'].forEach(k => ENDS[k].needs.forEach(nd => { if (S[k][nd.id]) { types[nd.type] = (types[nd.type]||0) + 1; made++; } }));
+  const byK = [0,1,2,3].map(() => ({ o: 0, w: 0 }));
+  S.history.forEach(h => h.rows.forEach(r => { if (r.state === 'live') { byK[r.k].o += r.opps.length; byK[r.k].w += r.wins; } }));
+  const kTxt = byK.map((b, i) => b.o ? `${i} of 3 needs met: ${pct(b.w / b.o)} of ${b.o} opportunities won` : null).filter(Boolean).join('. ');
+  const nodes = used.length + (S.endSpent.buyer ? 1 : 0) + (S.endSpent.user ? 1 : 0);
+  const l1 = `Between you and a user stood ${nodes || 'no'} node${nodes===1?'':'s'} you paid for, trained or negotiated with. You spent ${fmt(gtm)} on getting the product to market, on top of the cost of building it.`;
+  const l4 = `You created ${made} piece${made===1?'':'s'} of value for the network besides the product itself.`;
+  const typeList = Object.keys(types).map(t => t + (types[t] > 1 ? ' ×' + types[t] : ''));
+  const facts = [[fmt(S.revenue), 'revenue'], [fmt(S.cash), 'cash left'], [String(newCust.length), 'customers won'], [segs.filter(g => g.count).length + ' of 5', 'customer groups reached'], [fmt(gtm), 'spent on going to market']];
+  return { cls, kicker: S.over === 'broke' ? 'Game over' : 'Two years later', head, lead, segs, rows, l1, l3, l4, typeList, kTxt, facts };
+}
+
+function markdown(){
+  const R = summary(), L = [];
+  L.push('# Route to Market: final report', '', `**${R.head}**`, '', R.lead, '');
+  L.push('| ' + R.facts.map(f => f[1][0].toUpperCase() + f[1].slice(1)).join(' | ') + ' |', '|' + R.facts.map(() => ' ---: ').join('|') + '|', '| ' + R.facts.map(f => f[0]).join(' | ') + ' |', '');
+  L.push('## 1. The straight line does not exist', '', R.l1, '');
+  L.push('## 2. Different customers come through different channels', '');
+  R.segs.forEach(g => L.push(`- ${g.name}: ${g.count ? g.count + ' via ' + g.via.join(', ') : 'not reached'}`));
+  L.push('', 'No single channel reaches more than two of these groups.', '');
+  L.push('## 3. Each channel has its own odds and its own payoff', '', R.l3, '');
+  if (R.rows.length) { L.push('| Channel | Opportunities | Won | Win rate | Spent | Returned | Per $1 |', '| --- | ---: | ---: | ---: | ---: | ---: | ---: |'); R.rows.forEach(r => L.push(`| ${r.name} | ${r.opps} | ${r.wins} | ${r.rate} | ${fmt(r.spent)} | ${fmt(r.earned)} | $${r.roi.toFixed(2)} |`)); L.push(''); }
+  L.push('## 4. Every node needs its own value', '', R.l4, '');
+  R.typeList.forEach(t => L.push('- ' + t));
+  if (R.kTxt) L.push('', R.kTxt + '.');
+  L.push('', '## Quarter by quarter', '', '| Quarter | Revenue | Costs | Cash |', '| --- | ---: | ---: | ---: |');
+  S.history.forEach(h => L.push(`| Q${h.q} | ${fmt(h.rev)} | ${fmt(h.costs)} | ${fmt(h.cash)} |`));
+  L.push('', '---', '', 'Route to Market, a go-to-market game. Figures are illustrative, not benchmarks. © Évolution Informatique SAS 2026.', '');
+  return L.join('\n');
+}
+
+const SVG_CSS = "text{font-family:'Helvetica Neue',Arial,sans-serif}.edge{stroke:#d9d9d9;stroke-width:1.3;fill:none}.edge.on{stroke:#111;stroke-width:1.8}.edge.dash{stroke-dasharray:5 4}.ah{fill:#d9d9d9}.ah-on{fill:#111}.node ellipse{fill:#fff;stroke:#111;stroke-width:1.5;stroke-dasharray:5 4}.node.open ellipse{fill:#111;stroke-dasharray:none;stroke-width:2}.node text{font-size:13.5px;fill:#111;text-anchor:middle}.node.open text{fill:#fff}.pip{fill:#fff;stroke:#111;stroke-width:1.3}.pip.f{fill:#111}.node.open .pip{fill:#111;stroke:#fff}.node.open .pip.f{fill:#fff}.fig circle{fill:#fff;stroke:#111;stroke-width:1.6}.fig path{stroke:#111;stroke-width:1.6;fill:none;stroke-linecap:round}.fig.dim circle,.fig.dim path{stroke:#8a8a8a}.fig.hit circle{fill:#111}.lbl{font-weight:600;font-size:13px;fill:#111;text-anchor:middle}.sub{font-size:12.5px;fill:#5c5c5c;text-anchor:middle}.sub.got{fill:#111;font-weight:600}.colh{font-size:12px;font-weight:600;fill:#111;text-anchor:middle;letter-spacing:.06em;text-transform:uppercase}.hitbox{fill:none}.hshadow{fill:#8a8a8a}.hbox{fill:#fff;stroke:#111;stroke-width:1.6}";
+function svgImage(){
+  const src = $('#svg').cloneNode(true), NS = 'http://www.w3.org/2000/svg';
+  src.querySelector('#fx').innerHTML = '';
+  src.querySelectorAll('.ring').forEach(e => e.remove());
+  src.querySelectorAll('.sel').forEach(e => e.classList.remove('sel'));
+  src.setAttribute('xmlns', NS); src.setAttribute('width', 2000); src.setAttribute('height', 1220);
+  const st = document.createElementNS(NS, 'style'); st.textContent = SVG_CSS; src.insertBefore(st, src.firstChild);
+  const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(src));
+  return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+}
+function paint(ctx, R, img, H){
+  const W = 1200, P = 40, F = "'Helvetica Neue',Arial,sans-serif", D = "'Segoe UI',Arial,sans-serif";
+  const t = (s, x, y, font, color, align) => { ctx.font = font; ctx.fillStyle = color || '#111'; ctx.textAlign = align || 'left'; ctx.fillText(s, x, y); };
+  const wrap = (s, x, y, maxW, lh, font, color) => { ctx.font = font; ctx.fillStyle = color || '#111'; ctx.textAlign = 'left'; let line = ''; s.split(' ').forEach(w => { const tt = line ? line + ' ' + w : w; if (ctx.measureText(tt).width > maxW && line) { ctx.fillText(line, x, y); y += lh; line = w; } else line = tt; }); if (line) { ctx.fillText(line, x, y); y += lh; } return y; };
+  const sect = (title, y) => { t(title, P, y, `400 22px ${D}`); ctx.fillStyle = '#111'; ctx.fillRect(P, y + 10, W - 2*P, 2); return y + 40; };
+  ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, W, H);
+  const bg = R.cls === 'win' ? '#111' : R.cls === 'mid' ? '#3a3a3a' : '#fff', fg = R.cls === 'fail' ? '#111' : '#fff', dim = R.cls === 'fail' ? '#5c5c5c' : '#c8c8c8';
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, 262);
+  if (R.cls === 'fail') { ctx.fillStyle = '#111'; ctx.fillRect(0, 260, W, 2); }
+  t('ROUTE TO MARKET  ·  FINAL REPORT  ·  ' + R.kicker.toUpperCase(), P, 46, `600 13px ${F}`, dim);
+  t(R.head, P, 98, `400 42px ${D}`, fg);
+  wrap(R.lead, P, 132, W - 2*P, 22, `16px ${F}`, fg);
+  R.facts.forEach((f, i) => { const x = P + i * ((W - 2*P) / 5); t(f[0], x, 214, `600 30px ${F}`, fg); t(f[1].toUpperCase(), x, 236, `12px ${F}`, dim); });
+  let y = 262 + 34;
+  if (img) { const mw = W - 2*P, mh = Math.round(mw * 610 / 1000); ctx.fillStyle = '#fff'; ctx.fillRect(P, y, mw, mh); ctx.drawImage(img, P, y, mw, mh); ctx.strokeStyle = '#111'; ctx.lineWidth = 2; ctx.strokeRect(P, y, mw, mh); y += mh + 50; }
+  y = sect('Customers reached, by group', y);
+  R.segs.forEach(g => { t(g.name, P, y, `600 15px ${F}`); t(g.count ? g.count + ' via ' + g.via.join(', ') : 'not reached', P + 260, y, `15px ${F}`, g.count ? '#111' : '#8a8a8a'); y += 26; });
+  y += 30;
+  y = sect('Odds and payoff, by channel', y);
+  const cols = [['Channel', P + 12, 'left'], ['Opportunities', 520, 'right'], ['Won', 620, 'right'], ['Win rate', 740, 'right'], ['Spent', 870, 'right'], ['Returned', 1010, 'right'], ['Per $1', W - P - 12, 'right']];
+  ctx.fillStyle = '#f2f2f2'; ctx.fillRect(P, y - 22, W - 2*P, 32);
+  cols.forEach(c => t(c[0], c[1], y, `600 14px ${F}`, '#111', c[2]));
+  y += 32;
+  R.rows.forEach(r => { const v = [r.name, r.opps, r.wins, r.rate, fmt(r.spent), fmt(r.earned), '$' + r.roi.toFixed(2)]; cols.forEach((c, i) => t(String(v[i]), c[1], y, `${i ? '' : '600 '}14px ${F}`, '#111', c[2])); ctx.fillStyle = '#d9d9d9'; ctx.fillRect(P, y + 10, W - 2*P, 1); y += 32; });
+  if (!R.rows.length) { t('No channels were opened.', P + 12, y, `14px ${F}`, '#5c5c5c'); y += 32; }
+  y += 28;
+  y = sect('Value created for the network', y);
+  y = wrap(R.l4 + (R.typeList.length ? ' ' + R.typeList.join(', ') + '.' : ''), P, y, W - 2*P, 24, `15px ${F}`);
+  if (R.kTxt) y = wrap(R.kTxt + '.', P, y + 4, W - 2*P, 24, `15px ${F}`, '#5c5c5c');
+  y += 26;
+  t('FIGURES ARE ILLUSTRATIVE, NOT BENCHMARKS  ·  © ÉVOLUTION INFORMATIQUE SAS 2026', W / 2, y, `12px ${F}`, '#8a8a8a', 'center');
+  return y + 30;
+}
+async function buildPng(){
+  const R = summary(); let img = null;
+  try { img = await svgImage(); } catch (e) {}
+  const H = Math.ceil(paint(document.createElement('canvas').getContext('2d'), R, img, 0));
+  const cv = document.createElement('canvas'); cv.width = 2400; cv.height = H * 2;
+  const ctx = cv.getContext('2d'); ctx.scale(2, 2); paint(ctx, R, img, H);
+  return new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('no image')), 'image/png'));
+}
+let xView = null, xMsg = '', pngBlob = null, pngUrl = null, framed = false;
+try { framed = window.self !== window.top; } catch (e) { framed = true; }
+function preparePng(){ pngBlob = null; buildPng().then(b => { pngBlob = b; pngUrl = URL.createObjectURL(b); }).catch(() => {}); }
+let dl = null;
+try { if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dl = d; if (stage === 'end' && !busy) render(); }, () => {}); } catch (e) {}
+function save(blob, name){
+  if (dl) return dl.save({ filename: name, data: blob }).then(() => 'saved', e => e && e.code === 'declined' ? 'declined' : 'failed');
+  const u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 5000);
+  return Promise.resolve('plain');
+}
+const SAVE_MSG = { saved: 'Report saved.', declined: 'Save cancelled.' };
+function exportAct(a){
+  if (a === 'copymd') {
+    const done = ok => { xMsg = ok ? 'Copied to the clipboard.' : 'Copy was blocked. Select the text below and copy it.'; xView = ok ? null : 'md'; render(); };
+    try { navigator.clipboard.writeText(markdown()).then(() => done(true), () => done(false)); } catch (e) { done(false); }
+    return;
+  }
+  if (a === 'dlmd') return save(new Blob([markdown()], { type: 'text/markdown' }), 'route-to-market-report.md').then(r => {
+    xMsg = SAVE_MSG[r] || (r === 'failed' ? 'Saving is not available here. Use Copy instead.' : 'Download started. If no file arrived, use Copy instead.'); render(); });
+  if (!pngBlob) { xMsg = 'The image is still being drawn. Try again in a moment.'; return render(); }
+  save(pngBlob, 'route-to-market-report.png').then(r => {
+    if (r === 'failed' || r === 'plain') xView = 'png';
+    xMsg = SAVE_MSG[r] || (r === 'failed' ? 'Saving is not available here. Right-click or long-press the image below to save it.' : 'Download started. If no file arrived, right-click or long-press the image below to save it.'); render(); });
+}
+function exportBlock(){
+  return `<div class="export"><span class="kicker">Keep this report</span>
+    <div class="row"><button data-act="copymd">Copy report as Markdown</button><button data-act="dlmd">Download .md</button><button data-act="dlpng">Download image (.png)</button></div>
+    ${xMsg ? `<span class="toast" role="status">${xMsg}</span>` : ''}
+    ${framed && !dl ? `<span class="muted" style="font-size:13px">This viewer may block file downloads. Copy works here, and the image appears below when you ask for it. Downloads work when the game is opened on its own page.</span>` : ''}
+    ${xView === 'png' && pngUrl ? `<img src="${pngUrl}" alt="Final report with headline numbers, the final channel map and the channel table">` : ''}
+    ${xView === 'md' ? `<textarea id="md-out" readonly aria-label="Report as Markdown">${markdown().replace(/&/g, '&amp;').replace(/</g, '&lt;')}</textarea>` : ''}</div>`;
+}
+
+function debrief(){
+  const el = $('#debrief'); el.hidden = stage !== 'end'; if (stage !== 'end') return;
+  const R = summary();
+  const table = R.rows.length ? `<div class="tw"><table><thead><tr><th>Channel</th><th>Opportunities</th><th>Won</th><th>Win rate</th><th>Spent</th><th>Returned</th><th>Per $1</th></tr></thead><tbody>` +
+    R.rows.map(r => `<tr><td>${r.name}</td><td>${r.opps}</td><td>${r.wins}</td><td>${r.rate}</td><td>${fmt(r.spent)}</td><td>${fmt(r.earned)}</td><td>$${r.roi.toFixed(2)}</td></tr>`).join('') + `</tbody></table></div>` : '';
+  el.innerHTML = `<div class="outcome ${R.cls}"><div><span class="kicker">${R.kicker}</span><h2>${R.head}</h2><p style="max-width:65ch;margin-top:6px">${R.lead}</p></div>
+    <div class="facts">${R.facts.map(f => `<div><b>${f[0]}</b><span>${f[1]}</span></div>`).join('')}</div></div>
+    <div class="lessons">
+      <div class="lesson"><span class="no">1. The straight line does not exist</span><p>${R.l1}</p></div>
+      <div class="lesson"><span class="no">2. Different customers come through different channels</span><div class="chips">${R.segs.map(g => `<span class="chip${g.count?'':' off'}">${g.name}: ${g.count ? g.count + ' via ' + g.via.join(', ') : 'not reached'}</span>`).join('')}</div><p>No single channel reaches more than two of these groups.</p></div>
+      <div class="lesson"><span class="no">3. Each channel has its own odds and its own payoff</span><p>${R.l3}</p>${table}</div>
+      <div class="lesson"><span class="no">4. Every node needs its own value</span><p>${R.l4}</p><div class="chips">${R.typeList.map(t => `<span class="chip">${t}</span>`).join('') || '<span class="chip off">none</span>'}</div><p class="muted">${R.kTxt ? R.kTxt + '.' : 'No opportunities were worked.'}</p></div>
+    </div>
+    ${exportBlock()}
+    <div class="row"><button class="primary big" data-act="again">Play again</button><span class="muted">Try a different mix of channels. The map below shows where you ended.</span></div>`;
+}
+
+function render(){
+  hud(); action(); debrief(); panel();
+  if (stage === 'myth') drawMyth(); else drawNet();
+  $('#legend').innerHTML = stage === 'myth' ? '<span>The picture in most first pitch decks.</span>'
+    : '<span><strong>Select any oval or box.</strong></span><span><i class="o"></i> dashed: not open</span><span><i></i> need not met or deal lost</span><span><i class="f"></i> need met or deal won</span>';
+}
+
+function along(pts, f){
+  let tot = 0; const L = []; for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); L.push(d); tot += d; }
+  let d = f * tot; for (let i = 0; i < L.length; i++) { if (d <= L[i] || i === L.length-1) { const t = Math.min(1, d / L[i]); return [pts[i][0] + (pts[i+1][0]-pts[i][0])*t, pts[i][1] + (pts[i+1][1]-pts[i][1])*t]; } d -= L[i]; }
+}
+function fly(parts, span, done){
+  if (!parts.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
+  const fx = $('#fx'), NS = 'http://www.w3.org/2000/svg';
+  parts.forEach(p => { p.el = document.createElementNS(NS, 'circle'); p.el.setAttribute('r', 4); p.el.setAttribute('class', 'dot'); p.el.style.opacity = 0; fx.appendChild(p.el); });
+  const t0 = performance.now();
+  (function tick(now){
+    const el = now - t0;
+    parts.forEach(p => {
+      const t = (el - p.delay) / p.dur; if (t < 0) return;
+      const f = Math.min(t, p.stop), xy = along(p.pts, Math.min(1, f));
+      p.el.setAttribute('cx', xy[0]); p.el.setAttribute('cy', xy[1]);
+      if (t >= p.stop) { p.el.setAttribute('class', 'dot ' + (p.won ? 'w' : 'l')); p.el.style.opacity = p.won ? 1 : Math.max(0, 1 - (t - p.stop) * 4); if (p.won) p.el.setAttribute('r', 5.5); }
+      else p.el.style.opacity = 1;
+    });
+    if (el < span) requestAnimationFrame(tick); else { fx.innerHTML = ''; done(); }
+  })(t0);
+}
+
+function run(){
+  if (busy || S.over) return;
+  busy = true; render();
+  const r = runQuarter(S), parts = [];
+  r.rows.forEach(row => { const c = chan(row.id); row.opps.forEach(o => {
+    const y = SEGY[o.seg], pts = [[88,330], POS[c.id]]; if (c.via) pts.push(POS[c.via]); pts.push([BX-16, y]); if (o.won) pts.push([UX, y]);
+    parts.push({ pts, won: o.won, delay: Math.random() * 1300, dur: 1500, stop: o.won ? 1 : .5 + Math.random() * .4 });
+  }); });
+  fly(parts, 3100, () => { last = r; busy = false; sel = 'report'; if (S.over) stage = 'end'; render(); if (S.over) { preparePng(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+}
+
+function act(a, d){
+  if (a === 'ship') { busy = true; render(); fly([{ pts: [[200,300],[800,300]], won: false, delay: 0, dur: 1400, stop: .55 }], 1700, () => { busy = false; mythShipped = true; render(); }); if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; return; }
+  if (a === 'real') { stage = 'play'; sel = null; }
+  if (a === 'run') return run();
+  if (a === 'report') sel = 'report';
+  if (a === 'copymd' || a === 'dlmd' || a === 'dlpng') return exportAct(a);
+  if (S.over && a !== 'again') return;
+  if (a === 'open') openChannel(S, d.id);
+  if (a === 'close') closeChannel(S, d.id);
+  if (a === 'invest') invest(S, d.id, d.need);
+  if (a === 'again') { xView = null; xMsg = ''; pngBlob = null; if (pngUrl) URL.revokeObjectURL(pngUrl); pngUrl = null; S = newState(); stage = 'play'; sel = null; last = null; window.scrollTo({ top: 0 }); }
+  render();
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('[data-act]'); if (b && !b.disabled) return act(b.dataset.act, b.dataset);
+  const n = ev.target.closest('[data-node]'); if (n && stage !== 'myth') { sel = n.dataset.node; render(); if (innerWidth <= 960) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const n = ev.target.closest && ev.target.closest('[data-node]'); if (!n || stage === 'myth') return;
+  ev.preventDefault(); const id = n.dataset.node; sel = id; render();
+  const again = document.querySelector(`#net [data-node="${id}"][tabindex]`); if (again) again.focus();
+});
+render();
+})();
+</script>
+</body>
+</html>
