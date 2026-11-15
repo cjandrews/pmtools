@@ -4,18 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Route to Market Game</title>
+<link rel="stylesheet" href="styles/pm-tools.css">
 <style>
-/* Matches the PM Tools shell: monochrome ink on near-white, square 2px borders, black header bar.
-   Layout idea: the network diagram is the game board; a ledger panel sits beside it. */
+/* Page-only: board + ledger layout. Tokens, box-sizing, body color/bg/font-family, footer type, fadeIn from pm-tools.css. */
 :root{
-  --ink:#111111; --gray-dark:#3a3a3a; --gray-mid:#8a8a8a; --gray-light:#d9d9d9; --gray-pale:#f2f2f2;
   --bg:#fafafa; --surface:#ffffff;
   --body:'Helvetica Neue',Arial,sans-serif; --display:"Segoe UI",Arial,sans-serif;
+  --gray-text:#5c5c5c;
   color-scheme:light;
 }
-*{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);-webkit-text-size-adjust:100%}
+body{font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
 .wrap{max-width:1280px;margin:0 auto;padding:16px 16px 8px;display:flex;flex-direction:column;gap:14px}
 .inner{max-width:1280px;margin:0 auto;padding:0 16px}
 h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.2}
@@ -124,7 +123,6 @@ ol.how{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .dot{fill:var(--ink)} .dot.l{fill:#fff;stroke:var(--ink);stroke-width:1.5}
 /* debrief */
 .debrief{display:flex;flex-direction:column;gap:14px;animation:fadeIn .35s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .outcome{padding:22px 24px;border:2px solid var(--ink);background:var(--ink);color:#fff;display:flex;flex-direction:column;gap:14px}
 .outcome.mid{background:var(--gray-dark);border-color:var(--gray-dark)}
 .outcome.fail{background:#fff;color:var(--ink);border-style:dashed}
@@ -146,7 +144,7 @@ table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:ta
 th,td{text-align:right;padding:6px 10px;border:1px solid var(--ink)}
 th:first-child,td:first-child{text-align:left;font-weight:600}
 th{background:var(--gray-pale);font-weight:600}
-footer{color:var(--gray-mid);font-size:12px;text-transform:uppercase;letter-spacing:.05em;text-align:center;padding:8px 16px 24px}
+footer{text-align:center;padding:8px 16px 24px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){.debrief{animation:none}}
 @media (max-width:960px){
@@ -163,7 +161,6 @@ footer{color:var(--gray-mid);font-size:12px;text-transform:uppercase;letter-spac
 }
 
 /* UX pass: every action is an uppercase block with a hard offset shadow; nothing else has one. */
-:root{--gray-text:#5c5c5c}
 .tile .k,.kicker,.stats dt,.action .who{color:var(--gray-text)}
 .outcome .kicker{color:inherit}
 .sub{font-size:12.5px;fill:var(--gray-text)}
