@@ -90,6 +90,7 @@
   .ws-table th { background: var(--gray-pale); text-align: left; }
   .ws-table td, .ws-table th { border-bottom: 1px solid var(--gray-light); vertical-align: top; }
   .table-wrap { overflow-x: auto; }
+  .edit-btn { min-height: 44px; min-width: 44px; font-size: 15px; }
 
   @page { margin: 15mm; }
   @media print {
@@ -387,7 +388,7 @@ function renderSummary() {
   const m = S.meta;
   const section = (title, stepNo, html) => `
     <div class="w3-card w3-white w3-padding-large w3-margin-bottom">
-      <h3 class="w3-margin-top-0">${esc(title)} <button class="w3-button btn-outline w3-small w3-right no-print" data-act="goto" data-step="${stepNo}">Edit</button></h3>
+      <h3 class="w3-margin-top-0">${esc(title)} <button class="w3-button btn-outline edit-btn w3-right no-print" data-act="goto" data-step="${stepNo}">Edit</button></h3>
       ${html}
     </div>`;
   return `
@@ -410,12 +411,13 @@ function renderSummary() {
         </div>`).join("")}
     </div>
 
-    <div class="w3-card w3-white w3-padding-large w3-margin-bottom no-print">
-      <p class="kicker">Save or share</p>
-      <button class="w3-button btn-outline w3-margin-bottom" data-act="print">Print / Save as PDF</button>
+    <div class="save-panel w3-margin-bottom no-print">
+      <h3>Save your worksheet</h3>
+      <p class="w3-text-grey">Print it, save it as a PDF from the print dialog, or keep it as Markdown.</p>
+      <button class="w3-button btn-solid w3-margin-bottom" data-act="print">Print / Save as PDF</button>
       <button class="w3-button btn-outline w3-margin-bottom" data-act="dlmd">Download .md</button>
       <button class="w3-button btn-outline w3-margin-bottom" data-act="copymd">Copy Markdown</button>
-      <span class="copy-toast" id="toast">Copied</span>
+      <span class="copy-toast show" id="toast" role="status"></span>
     </div>
 
     ${section("Executive buy-in", 1, table(["Company", "Name", "Title", "Role"], d.exec))}
@@ -511,8 +513,8 @@ function act(a, data) {
   if (a === "dlmd") return PMTools.downloadFile(fileName(), buildMarkdown(), "text/markdown");
   if (a === "copymd") return PMTools.copyText(buildMarkdown()).then(() => {
     const t = document.getElementById("toast");
-    t.classList.add("show");
-    setTimeout(() => t.classList.remove("show"), 1600);
+    t.textContent = "Copied";
+    setTimeout(() => { t.textContent = ""; }, 1600);
   });
   if (a === "restart" && confirm("Start over? All answers will be cleared.")) {
     S = newState();

@@ -91,6 +91,26 @@ body {
 
 .btn-outline:hover { background: var(--ink); color: #fff; }
 
+.btn-solid {
+  border-radius: 0;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.btn-solid:hover { background: var(--gray-dark) !important; color: #fff !important; }
+
+/* The offset shadow marks the end-of-flow action area (save, export, print). */
+.save-panel {
+  background: var(--gray-pale);
+  border: 2px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  padding: 16px 20px;
+}
+
+.save-panel h3 { margin-top: 0; }
+
 .fade-in {
   animation: fadeIn 0.35s ease;
 }

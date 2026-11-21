@@ -189,7 +189,7 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:3px;box-shadow:
 .legend{color:var(--gray-dark)}
 @media (max-width:620px){.action{padding:10px}.action button.big{font-size:15px;padding:12px 14px}}
 
-.export{background:#fff;border:2px solid var(--ink);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.export{display:flex;flex-direction:column;gap:10px}
 .export img{max-width:100%;height:auto;border:1px solid var(--ink);display:block}
 .export textarea{width:100%;min-height:200px;font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;border:2px solid var(--ink);border-radius:0;padding:10px;background:var(--gray-pale);color:var(--ink)}
 .toast{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);font-weight:600}
@@ -709,7 +709,7 @@ function exportAct(a){
     xMsg = SAVE_MSG[r] || (r === 'failed' ? 'Saving is not available here. Right-click or long-press the image below to save it.' : 'Download started. If no file arrived, right-click or long-press the image below to save it.'); render(); });
 }
 function exportBlock(){
-  return `<div class="export"><span class="kicker">Keep this report</span>
+  return `<div class="export save-panel"><h3>Save your report</h3><p class="muted">Copy it as Markdown, or download it as a Markdown file or an image.</p>
     <div class="row"><button data-act="copymd">Copy report as Markdown</button><button data-act="dlmd">Download .md</button><button data-act="dlpng">Download image (.png)</button></div>
     ${xMsg ? `<span class="toast" role="status">${xMsg}</span>` : ''}
     ${framed && !dl ? `<span class="muted" style="font-size:13px">This viewer may block file downloads. Copy works here, and the image appears below when you ask for it. Downloads work when the game is opened on its own page.</span>` : ''}
