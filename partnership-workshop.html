@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partnership Workshop</title>
+<meta name="description" content="Interactive worksheet for building a partnership or alliance between companies: executive buy-in, go-to-market fit, joint milestones, and committed resources.">
+<meta property="og:title" content="Partnership Workshop">
+<meta property="og:description" content="Work through the four things every alliance needs and leave with a printable worksheet.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Partnership Workshop">
+<meta name="twitter:description" content="Work through the four things every alliance needs and leave with a printable worksheet.">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="styles/pm-tools.css">
+
+<!-- Favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="shortcut icon" href="images/favicon.ico">
+<style>
+  .kicker {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-mid);
+    margin: 0 0 6px;
+  }
+  button.trail-badge { font-family: inherit; cursor: pointer; }
+  button.trail-badge:disabled { cursor: default; opacity: 0.5; }
+  .ws-label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-dark);
+    margin-bottom: 12px;
+  }
+  .ws-input {
+    display: block;
+    width: 100%;
+    margin-top: 4px;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.4;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--ink);
+    padding: 8px 10px;
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    background: #fff;
+  }
+  .ws-input:focus { outline: none; box-shadow: 4px 4px 0 var(--ink); }
+  .ws-input::placeholder { color: var(--gray-mid); font-style: italic; }
+  textarea.ws-input { min-height: 64px; resize: vertical; }
+  .ws-row {
+    border: 2px dashed var(--gray-mid);
+    padding: 12px 14px 2px;
+    margin-bottom: 12px;
+  }
+  .ws-row h3 { margin: 0 0 4px; font-size: 17px; }
+  .ws-help { font-size: 13px; color: var(--gray-dark); margin: 0 0 10px; }
+  .ws-note {
+    font-size: 13px;
+    border-left: 3px solid var(--ink);
+    background: var(--gray-pale);
+    padding: 8px 12px;
+    margin: 0 0 12px;
+  }
+  .status {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 10px;
+    border: 2px solid var(--ink);
+  }
+  .status.ready { background: var(--ink); color: #fff; }
+  .status.risk { border-style: dashed; }
+  .status.missing { background: var(--gray-light); }
+  .flags { margin: 10px 0 0; padding-left: 18px; font-size: 14px; }
+  .flags li { margin-bottom: 4px; }
+  .flags li.missing { font-weight: 600; }
+  .flags li.note { color: var(--gray-dark); }
+  .ws-table { border: 2px solid var(--ink); font-size: 14px; }
+  .ws-table th { background: var(--gray-pale); text-align: left; }
+  .ws-table td, .ws-table th { border-bottom: 1px solid var(--gray-light); vertical-align: top; }
+  .table-wrap { overflow-x: auto; }
+
+  @page { margin: 15mm; }
+  @media print {
+    body { background: #fff; }
+    header, .progress-outer, .trail, .no-print, footer { display: none !important; }
+    .stage-wrap { max-width: none; }
+    .w3-card { break-inside: avoid; }
+    .fade-in { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="w3-bar w3-black w3-padding-16">
+  <div class="stage-wrap">
+    <a class="home-link" href="pm-tools.html">← PM Tools</a><br>
+    <span class="w3-xlarge" style="letter-spacing:0.03em;">PARTNERSHIP WORKSHOP</span><br>
+    <span class="w3-small w3-opacity">Four things every alliance needs. Work through them together and leave with a worksheet.</span>
+  </div>
+</header>
+
+<div class="stage-wrap w3-margin-top w3-padding">
+  <div class="progress-outer w3-margin-bottom">
+    <div class="progress-inner" id="progressBar" style="width:0%"></div>
+  </div>
+  <div class="trail" id="trail"></div>
+</div>
+
+<div class="stage-wrap w3-padding" id="app"></div>
+
+<div class="stage-wrap w3-padding w3-margin-bottom">
+  <footer class="w3-center">Based on the four alliance components framework by <a href="https://www.linkedin.com/in/chrisjandrews/">Chris Andrews</a>.
+    <br />These tools are 100% client-side and do not store or transmit any data.
+    <br />&copy; <a href="https://www.evolutioninformatique.fr">Évolution Informatique SAS</a> 2026.</footer>
+</div>
+
+<script src="scripts/pm-tools.js"></script>
+<script>
+const esc = PMTools.escapeHtml;
+
+const GTM = [
+  { id: "sales", name: "Sales motion and competition", help: "Do the sales teams call on the same buyers? Do they complement each other, or compete for the same deal or budget?" },
+  { id: "comp", name: "Sales compensation", help: "Will reps on both sides get paid (quota credit, commission, SPIFs) when they sell together?" },
+  { id: "industry", name: "Industries", help: "Do you serve the same industries or verticals, or adjacent ones?" },
+  { id: "personas", name: "Target personas", help: "Do you market to the same roles, or to roles that work together?" },
+  { id: "channels", name: "Marketing channels and messaging", help: "Shared events, campaigns, resellers, and a message both sides can say." },
+  { id: "regions", name: "Regions", help: "Where each company sells and supports customers." },
+  { id: "pricing", name: "Pricing and licensing model", help: "Subscription vs. perpetual, seat vs. usage, list price levels." }
+];
+const RATINGS = [["", "Not discussed"], ["complementary", "Complementary"], ["neutral", "Neutral / compatible"], ["conflict", "Conflict"], ["disconnected", "Disconnected"]];
+const MS_TYPES = [["compat", "Compatibility release"], ["integration", "Integration"], ["newproduct", "New product"], ["format", "New format introduction"], ["port", "Move product onto partner tech"], ["bundle", "Bundle"]];
+const RES_STATUS = [["", "Not discussed"], ["committed", "Committed"], ["proposed", "Proposed"], ["none", "None"]];
+const STATUS_LABEL = { ready: "Ready", risk: "At risk", missing: "Missing" };
+const SIDES = ["a", "b"];
+
+const blankExec = () => ({ name: "", title: "", role: "" });
+const blankRes = () => ({ lead: "", people: "", budget: "", status: "" });
+const blankMs = () => ({ type: "integration", desc: "", date: "", ownerA: "", ownerB: "", res: { a: blankRes(), b: blankRes() } });
+const newState = () => ({
+  meta: { name: "", a: "", b: "", date: "", people: "" },
+  execs: { a: [blankExec()], b: [blankExec()] },
+  gtm: Object.fromEntries(GTM.map(d => [d.id, { rating: "", notes: "" }])),
+  ms: [blankMs()]
+});
+
+let S = newState();
+let step = 0, maxStep = 0;
+
+const app = document.getElementById("app");
+const trailEl = document.getElementById("trail");
+const progressBar = document.getElementById("progressBar");
+
+/* ---------- helpers ---------- */
+
+const optLabel = (list, v) => (list.find(o => o[0] === v) || ["", ""])[1];
+const co = side => S.meta[side].trim() || (side === "a" ? "Company A" : "Company B");
+const liveMs = () => S.ms.filter(m => m.desc.trim());
+const short = s => (s = s.trim()).length > 40 ? s.slice(0, 40) + "…" : s;
+
+function getPath(path) {
+  return path.split(".").reduce((o, k) => o[k], S);
+}
+function setPath(path, v) {
+  const keys = path.split(".");
+  const last = keys.pop();
+  keys.reduce((o, k) => o[k], S)[last] = v;
+}
+
+function input(label, path, ph = "", type = "text") {
+  return `<label class="ws-label">${esc(label)}<input class="ws-input" type="${type}" data-bind="${path}" value="${esc(getPath(path))}" placeholder="${esc(ph)}"></label>`;
+}
+function area(label, path, ph = "") {
+  return `<label class="ws-label">${esc(label)}<textarea class="ws-input" data-bind="${path}" placeholder="${esc(ph)}">${esc(getPath(path))}</textarea></label>`;
+}
+function select(label, path, opts, rerender) {
+  const v = getPath(path);
+  return `<label class="ws-label">${esc(label)}<select class="ws-input" data-bind="${path}"${rerender ? " data-rerender" : ""}>${
+    opts.map(([val, txt]) => `<option value="${val}"${val === v ? " selected" : ""}>${esc(txt)}</option>`).join("")
+  }</select></label>`;
+}
+
+/* ---------- assessment ---------- */
+
+function statusOf(flags) {
+  if (flags.some(f => f[0] === "missing")) return "missing";
+  if (flags.some(f => f[0] === "risk")) return "risk";
+  return "ready";
+}
+
+function assess() {
+  const exec = [];
+  SIDES.forEach(s => {
+    const n = S.execs[s].filter(e => e.name.trim()).length;
+    if (!n) exec.push(["missing", `No named executive at ${co(s)}.`]);
+    else if (n > 1) exec.push(["note", `${co(s)} has ${n} executives named. One accountable sponsor is preferred.`]);
+  });
+
+  const gtm = [];
+  const names = r => GTM.filter(d => S.gtm[d.id].rating === r).map(d => d.name).join(", ");
+  if (!GTM.some(d => S.gtm[d.id].rating)) {
+    gtm.push(["missing", "Go-to-market fit has not been assessed."]);
+  } else {
+    if (names("")) gtm.push(["risk", `Not yet discussed: ${names("")}.`]);
+    if (names("conflict")) gtm.push(["risk", `Conflict: ${names("conflict")}. Resolve this, or the field teams will work against each other.`]);
+    if (names("disconnected")) gtm.push(["risk", `Disconnected: ${names("disconnected")}. With no shared ground, joint selling has nothing to build on.`]);
+  }
+
+  const ms = [], res = [];
+  const live = liveMs();
+  if (!live.length) {
+    ms.push(["missing", "No joint milestones defined."]);
+    res.push(["missing", "No milestones to resource."]);
+  } else {
+    live.forEach(m => {
+      const t = `"${short(m.desc)}"`;
+      if (!m.date) ms.push(["risk", `${t} has no target date.`]);
+      if (!m.ownerA.trim() || !m.ownerB.trim()) ms.push(["risk", `${t} needs an owner at both companies.`]);
+      if (m.type === "bundle") ms.push(["note", `${t} is a bundle. Bundling is often very complicated (pricing, packaging, support, revenue split), so allow extra time.`]);
+      SIDES.forEach(s => {
+        const st = m.res[s].status;
+        if (st !== "committed") res.push(["risk", `${co(s)} has ${st === "proposed" ? "only proposed" : "not committed"} resources for ${t}.`]);
+      });
+    });
+    if (!live.some(m => m.res.a.status === "committed" && m.res.b.status === "committed")) {
+      res.unshift(["missing", "No milestone has committed resources from both companies. Without them, milestones will not be met."]);
+    }
+  }
+
+  return [
+    { title: "Executive buy-in", step: 1, flags: exec },
+    { title: "Compatible go-to-market", step: 2, flags: gtm },
+    { title: "Agreed milestones", step: 3, flags: ms },
+    { title: "Committed resourcing", step: 4, flags: res }
+  ].map(c => ({ ...c, status: statusOf(c.flags) }));
+}
+
+/* ---------- steps ---------- */
+
+function renderBasics() {
+  return `
+    <div class="w3-card w3-white w3-padding-large fade-in">
+      <p class="kicker">Start</p>
+      <h2 class="w3-margin-top-0">Build a partnership worksheet</h2>
+      <p class="w3-text-grey">Every alliance needs four things: executive buy-in, a compatible go-to-market, agreed milestones, and committed resources. Work through each one with both companies in the room.</p>
+      ${input("Partnership name", "meta.name", "e.g. Atlas + Northwind integration alliance")}
+      <div class="w3-row-padding" style="margin:0 -16px">
+        <div class="w3-col m6">${input("Company A", "meta.a", "Your company")}</div>
+        <div class="w3-col m6">${input("Company B", "meta.b", "Partner company")}</div>
+      </div>
+      ${input("Workshop date", "meta.date", "", "date")}
+      ${area("Participants (optional)", "meta.people", "Names and roles from both companies")}
+      <button class="big-btn" id="nextBtn" data-act="next">Start the worksheet</button>
+    </div>`;
+}
+
+function renderExecs() {
+  const side = s => `
+    <div class="w3-col m6">
+      <h3>${esc(co(s))}</h3>
+      ${S.execs[s].map((e, i) => `
+        <div class="ws-row">
+          ${input("Name", `execs.${s}.${i}.name`, "e.g. Dana Ortiz")}
+          ${input("Title", `execs.${s}.${i}.title`, "e.g. Chief Revenue Officer")}
+          ${input("Role in the alliance", `execs.${s}.${i}.role`, "e.g. Executive sponsor")}
+          ${S.execs[s].length > 1 ? `<p><button class="w3-button btn-outline w3-small" data-act="delExec" data-side="${s}" data-i="${i}">Remove</button></p>` : ""}
+        </div>`).join("")}
+      ${S.execs[s].length < 3 ? `<button class="w3-button btn-outline w3-small w3-margin-bottom" data-act="addExec" data-side="${s}">Add executive</button>` : ""}
+    </div>`;
+  return `
+    <div class="w3-card w3-white w3-padding-large fade-in">
+      <p class="kicker">Step 1 of 4</p>
+      <h2 class="w3-margin-top-0">Executive buy-in</h2>
+      <p class="w3-text-grey">Name the executives who will back this alliance. One to three per company is typical; one accountable sponsor on each side is best.</p>
+      <div class="w3-row-padding" style="margin:0 -16px">${side("a")}${side("b")}</div>
+      ${navButtons()}
+    </div>`;
+}
+
+function renderGtm() {
+  return `
+    <div class="w3-card w3-white w3-padding-large fade-in">
+      <p class="kicker">Step 2 of 4</p>
+      <h2 class="w3-margin-top-0">Compatible go-to-market</h2>
+      <p class="w3-text-grey">Rate each dimension. Look for complementary or compatible patterns. Avoid obvious conflict, and avoid complete disconnection.</p>
+      ${GTM.map(d => `
+        <div class="ws-row">
+          <h3>${esc(d.name)}</h3>
+          <p class="ws-help">${esc(d.help)}</p>
+          <div class="w3-row-padding" style="margin:0 -16px">
+            <div class="w3-col l4">${select("Rating", `gtm.${d.id}.rating`, RATINGS)}</div>
+            <div class="w3-col l8">${input("Notes", `gtm.${d.id}.notes`, "What you agreed or what still needs work")}</div>
+          </div>
+        </div>`).join("")}
+      ${navButtons()}
+    </div>`;
+}
+
+function renderMilestones() {
+  return `
+    <div class="w3-card w3-white w3-padding-large fade-in">
+      <p class="kicker">Step 3 of 4</p>
+      <h2 class="w3-margin-top-0">Agreed milestones</h2>
+      <p class="w3-text-grey">List the joint releases or features both companies will deliver: compatibility releases, integrations, new products or formats, moving a product onto the partner's tech, or bundles.</p>
+      ${S.ms.map((m, i) => `
+        <div class="ws-row">
+          <h3>Milestone ${i + 1}</h3>
+          <div class="w3-row-padding" style="margin:0 -16px">
+            <div class="w3-col m6">${select("Type", `ms.${i}.type`, MS_TYPES, true)}</div>
+            <div class="w3-col m6">${input("Target date", `ms.${i}.date`, "", "date")}</div>
+          </div>
+          ${m.type === "bundle" ? `<p class="ws-note">Bundling is often very complicated: pricing, packaging, support, and revenue split all need agreement.</p>` : ""}
+          ${area("Description", `ms.${i}.desc`, "What ships, and what it means for customers")}
+          <div class="w3-row-padding" style="margin:0 -16px">
+            <div class="w3-col m6">${input(`Owner at ${co("a")}`, `ms.${i}.ownerA`)}</div>
+            <div class="w3-col m6">${input(`Owner at ${co("b")}`, `ms.${i}.ownerB`)}</div>
+          </div>
+          ${S.ms.length > 1 ? `<p><button class="w3-button btn-outline w3-small" data-act="delMs" data-i="${i}">Remove</button></p>` : ""}
+        </div>`).join("")}
+      <button class="w3-button btn-outline w3-small w3-margin-bottom" data-act="addMs">Add milestone</button>
+      <p class="ws-help">Milestones without a description are left out of the worksheet.</p>
+      ${navButtons()}
+    </div>`;
+}
+
+function renderResources() {
+  const rows = S.ms.map((m, i) => ({ m, i })).filter(x => x.m.desc.trim());
+  const body = rows.length ? rows.map(({ m, i }) => `
+    <div class="ws-row">
+      <h3>${esc(optLabel(MS_TYPES, m.type))}: ${esc(short(m.desc))}</h3>
+      <p class="ws-help">${m.date ? "Target " + esc(m.date) : "No target date"}</p>
+      <div class="w3-row-padding" style="margin:0 -16px">
+        ${SIDES.map(s => `
+          <div class="w3-col m6">
+            <p class="kicker">${esc(co(s))}</p>
+            ${input("Lead", `ms.${i}.res.${s}.lead`, "Named person accountable")}
+            ${input("People / FTE", `ms.${i}.res.${s}.people`, "e.g. 2 engineers, 0.5 PM")}
+            ${input("Budget", `ms.${i}.res.${s}.budget`, "e.g. €40k for joint marketing")}
+            ${select("Status", `ms.${i}.res.${s}.status`, RES_STATUS)}
+          </div>`).join("")}
+      </div>
+    </div>`).join("")
+    : `<p class="ws-note">No milestones yet. <button class="w3-button btn-outline w3-small" data-act="goto" data-step="3">Add milestones</button></p>`;
+  return `
+    <div class="w3-card w3-white w3-padding-large fade-in">
+      <p class="kicker">Step 4 of 4</p>
+      <h2 class="w3-margin-top-0">Committed resourcing</h2>
+      <p class="w3-text-grey">For each milestone, record what each company commits. Without committed resources, milestones won't be met.</p>
+      ${body}
+      ${navButtons("See summary")}
+    </div>`;
+}
+
+function table(head, rows) {
+  if (!rows.length) return `<p class="ws-help">Nothing recorded.</p>`;
+  return `<div class="table-wrap"><table class="w3-table ws-table">
+    <tr>${head.map(h => `<th>${esc(h)}</th>`).join("")}</tr>
+    ${rows.map(r => `<tr>${r.map(c => `<td>${esc(c || "—")}</td>`).join("")}</tr>`).join("")}
+  </table></div>`;
+}
+
+function detailRows() {
+  const live = liveMs();
+  return {
+    exec: SIDES.flatMap(s => S.execs[s].filter(e => e.name.trim()).map(e => [co(s), e.name, e.title, e.role])),
+    gtm: GTM.map(d => [d.name, optLabel(RATINGS, S.gtm[d.id].rating), S.gtm[d.id].notes]),
+    ms: live.map((m, i) => [String(i + 1), optLabel(MS_TYPES, m.type), m.desc, m.date, m.ownerA, m.ownerB]),
+    res: live.flatMap((m, i) => SIDES.map(s => [`${i + 1}. ${short(m.desc)}`, co(s), m.res[s].lead, m.res[s].people, m.res[s].budget, optLabel(RES_STATUS, m.res[s].status)]))
+  };
+}
+
+function renderSummary() {
+  const cards = assess();
+  const ready = cards.filter(c => c.status === "ready").length;
+  const d = detailRows();
+  const m = S.meta;
+  const section = (title, stepNo, html) => `
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom">
+      <h3 class="w3-margin-top-0">${esc(title)} <button class="w3-button btn-outline w3-small w3-right no-print" data-act="goto" data-step="${stepNo}">Edit</button></h3>
+      ${html}
+    </div>`;
+  return `
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom fade-in">
+      <p class="kicker">Partnership worksheet</p>
+      <h2 class="w3-margin-top-0">${esc(m.name)}</h2>
+      <p><b>${esc(co("a"))}</b> and <b>${esc(co("b"))}</b>${m.date ? ` · Workshop ${esc(m.date)}` : ""}</p>
+      ${m.people.trim() ? `<p class="w3-small w3-text-grey" style="white-space:pre-wrap">${esc(m.people)}</p>` : ""}
+      <p class="ws-note"><b>${ready === 4 ? "All four components are ready." : `${ready} of 4 components ready.`}</b> ${ready === 4 ? "Move to agreement and launch planning." : "Resolve the flags below before you commit to launch dates."}</p>
+    </div>
+
+    <div class="w3-row-padding fade-in" style="margin:0 -16px;display:flex;flex-wrap:wrap">
+      ${cards.map(c => `
+        <div class="w3-col m6 w3-margin-bottom">
+          <div class="w3-card w3-white w3-padding" style="height:100%">
+            <div class="w3-large"><b>${esc(c.title)}</b></div>
+            <span class="status ${c.status}">${STATUS_LABEL[c.status]}</span>
+            ${c.flags.length ? `<ul class="flags">${c.flags.map(f => `<li class="${f[0]}">${esc(f[1])}</li>`).join("")}</ul>` : `<p class="ws-help w3-margin-top">No issues flagged.</p>`}
+          </div>
+        </div>`).join("")}
+    </div>
+
+    <div class="w3-card w3-white w3-padding-large w3-margin-bottom no-print">
+      <p class="kicker">Save or share</p>
+      <button class="w3-button btn-outline w3-margin-bottom" data-act="print">Print / Save as PDF</button>
+      <button class="w3-button btn-outline w3-margin-bottom" data-act="dlmd">Download .md</button>
+      <button class="w3-button btn-outline w3-margin-bottom" data-act="copymd">Copy Markdown</button>
+      <span class="copy-toast" id="toast">Copied</span>
+    </div>
+
+    ${section("Executive buy-in", 1, table(["Company", "Name", "Title", "Role"], d.exec))}
+    ${section("Compatible go-to-market", 2, table(["Dimension", "Rating", "Notes"], d.gtm))}
+    ${section("Agreed milestones", 3, table(["#", "Type", "Description", "Target", `Owner ${co("a")}`, `Owner ${co("b")}`], d.ms))}
+    ${section("Committed resourcing", 4, table(["Milestone", "Company", "Lead", "People / FTE", "Budget", "Status"], d.res))}
+
+    <div class="w3-center w3-margin-bottom no-print">
+      <button class="w3-button btn-outline w3-padding" data-act="restart">Start over</button>
+    </div>`;
+}
+
+const STEPS = [
+  { trail: "Basics", render: renderBasics },
+  { trail: "Executives", render: renderExecs },
+  { trail: "Go-to-market", render: renderGtm },
+  { trail: "Milestones", render: renderMilestones },
+  { trail: "Resourcing", render: renderResources },
+  { trail: "Summary", render: renderSummary }
+];
+
+function navButtons(nextLabel = "Continue") {
+  return `
+    <div class="w3-margin-top"><button class="big-btn" data-act="next">${nextLabel}</button></div>
+    <div class="w3-center w3-margin-top">
+      <button class="w3-button btn-outline w3-small w3-margin-right" data-act="back">Back</button>
+      <button class="w3-button btn-outline w3-small" data-act="restart">Start over</button>
+    </div>`;
+}
+
+/* ---------- markdown ---------- */
+
+function mdTable(head, rows) {
+  if (!rows.length) return "_Nothing recorded._\n";
+  const cell = c => String(c || "—").replace(/\|/g, "\\|").replace(/\s*\n\s*/g, " ");
+  return [head, head.map(() => "---"), ...rows].map(r => "| " + r.map(cell).join(" | ") + " |").join("\n") + "\n";
+}
+
+function buildMarkdown() {
+  const m = S.meta, d = detailRows(), cards = assess();
+  const out = [`# ${m.name}`, "", `**${co("a")}** and **${co("b")}**${m.date ? ` · Workshop ${m.date}` : ""}`, ""];
+  if (m.people.trim()) out.push("Participants: " + m.people.trim().replace(/\s*\n\s*/g, "; "), "");
+  out.push("## Readiness", "");
+  cards.forEach(c => {
+    out.push(`### ${c.title}: ${STATUS_LABEL[c.status]}`, "");
+    out.push(...(c.flags.length ? c.flags.map(f => `- ${f[1]}`) : ["- No issues flagged."]), "");
+  });
+  out.push("## Executive buy-in", "", mdTable(["Company", "Name", "Title", "Role"], d.exec));
+  out.push("## Compatible go-to-market", "", mdTable(["Dimension", "Rating", "Notes"], d.gtm));
+  out.push("## Agreed milestones", "", mdTable(["#", "Type", "Description", "Target", `Owner ${co("a")}`, `Owner ${co("b")}`], d.ms));
+  out.push("## Committed resourcing", "", mdTable(["Milestone", "Company", "Lead", "People / FTE", "Budget", "Status"], d.res));
+  return out.join("\n");
+}
+
+const fileName = () => (S.meta.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "partnership") + "-worksheet.md";
+
+/* ---------- render + events ---------- */
+
+function renderTrail() {
+  trailEl.innerHTML = STEPS.map((s, i) =>
+    `<button class="trail-badge ${i === step ? "start" : i <= maxStep ? "done" : ""}" data-act="goto" data-step="${i}"${i > maxStep ? " disabled" : ""}>${esc(s.trail)}</button>`
+  ).join("");
+  progressBar.style.width = (step / (STEPS.length - 1)) * 100 + "%";
+}
+
+function syncStart() {
+  const btn = document.getElementById("nextBtn");
+  if (btn) btn.disabled = !(S.meta.name.trim() && S.meta.a.trim() && S.meta.b.trim());
+}
+
+function render() {
+  renderTrail();
+  app.innerHTML = STEPS[step].render();
+  syncStart();
+}
+
+function go(n) {
+  step = n;
+  maxStep = Math.max(maxStep, n);
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function act(a, data) {
+  if (a === "next") return go(step + 1);
+  if (a === "back") return go(step - 1);
+  if (a === "goto") return go(+data.step);
+  if (a === "addExec") { S.execs[data.side].push(blankExec()); return render(); }
+  if (a === "delExec") { S.execs[data.side].splice(+data.i, 1); return render(); }
+  if (a === "addMs") { S.ms.push(blankMs()); return render(); }
+  if (a === "delMs") { S.ms.splice(+data.i, 1); return render(); }
+  if (a === "print") return window.print();
+  if (a === "dlmd") return PMTools.downloadFile(fileName(), buildMarkdown(), "text/markdown");
+  if (a === "copymd") return PMTools.copyText(buildMarkdown()).then(() => {
+    const t = document.getElementById("toast");
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 1600);
+  });
+  if (a === "restart" && confirm("Start over? All answers will be cleared.")) {
+    S = newState();
+    maxStep = 0;
+    go(0);
+  }
+}
+
+app.addEventListener("input", e => {
+  const path = e.target.dataset.bind;
+  if (!path) return;
+  setPath(path, e.target.value);
+  if ("rerender" in e.target.dataset) render();
+  else syncStart();
+});
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]");
+  if (b && !b.disabled) act(b.dataset.act, b.dataset);
+});
+
+render();
+</script>
+
+</body>
+</html>
