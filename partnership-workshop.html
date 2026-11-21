@@ -149,8 +149,12 @@ const SIDES = ["a", "b"];
 const blankExec = () => ({ name: "", title: "", role: "" });
 const blankRes = () => ({ lead: "", people: "", budget: "", status: "" });
 const blankMs = () => ({ type: "integration", desc: "", date: "", ownerA: "", ownerB: "", res: { a: blankRes(), b: blankRes() } });
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 const newState = () => ({
-  meta: { name: "", a: "", b: "", date: "", people: "" },
+  meta: { name: "", a: "", b: "", date: today(), people: "" },
   execs: { a: [blankExec()], b: [blankExec()] },
   gtm: Object.fromEntries(GTM.map(d => [d.id, { rating: "", notes: "" }])),
   ms: [blankMs()]
